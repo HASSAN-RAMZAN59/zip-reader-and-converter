@@ -11,6 +11,7 @@ const config = {
     blockList: [
       /.*[/\\]android[/\\]\.gradle[/\\].*/,
       /.*[/\\]android[/\\]app[/\\]build[/\\].*/,
+      /.*[/\\]node_modules[/\\]@react-native[/\\]gradle-plugin[/\\].*/,
     ],
   },
 };
