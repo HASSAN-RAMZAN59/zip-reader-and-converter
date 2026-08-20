@@ -23,11 +23,13 @@
 @rem
 @rem ##########################################################################
 
+set GRADLE_USER_HOME=D:\gradle_cache
 @rem Set local scope for the variables with windows NT shell
 if "%OS%"=="Windows_NT" setlocal
 
 set DIRNAME=%~dp0
 if "%DIRNAME%"=="" set DIRNAME=.
+set GRADLE_USER_HOME=D:\gradle_cache
 @rem This is normally unused
 set APP_BASE_NAME=%~n0
 set APP_HOME=%DIRNAME%
@@ -37,6 +39,7 @@ for %%i in ("%APP_HOME%") do set APP_HOME=%%~fi
 
 @rem Add default JVM options here. You can also use JAVA_OPTS and GRADLE_OPTS to pass JVM options to this script.
 set DEFAULT_JVM_OPTS="-Xmx64m" "-Xms64m"
+if "%GRADLE_USER_HOME%"=="" set GRADLE_USER_HOME=D:\gradle_cache
 
 @rem Find java.exe
 if defined JAVA_HOME goto findJavaFromJavaHome
