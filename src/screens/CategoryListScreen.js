@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -20,6 +20,7 @@ import { extractZipArchive, checkArchiveEncrypted } from '../services/ZipService
 
 const COMPRESSED_EXTENSIONS = ['.zip', '.rar', '.7z', '.tar', '.gz'];
 const IMAGE_EXTENSIONS = ['.png', '.jpg', '.jpeg', '.webp', '.heic', '.heif', '.gif', '.bmp', '.svg'];
+const VIDEO_EXTENSIONS = ['.mp4', '.mkv', '.avi', '.mov', '.3gp', '.webm', '.flv', '.wmv'];
 
 const getExtension = (fileName = '') => {
   if (!fileName || typeof fileName !== 'string') return '';
@@ -27,6 +28,57 @@ const getExtension = (fileName = '') => {
   if (lastDot === -1) return '';
   return fileName.substring(lastDot).toLowerCase();
 };
+
+const isImageFile = (fileName = '') => {
+  const ext = getExtension(fileName);
+  return IMAGE_EXTENSIONS.includes(ext);
+};
+
+const isVideoFile = (fileName = '') => {
+  const ext = getExtension(fileName);
+  return VIDEO_EXTENSIONS.includes(ext);
+};
+
+const VideoThumbnail = React.memo(({ path }) => {
+  const [thumbUri, setThumbUri] = useState(null);
+
+  useEffect(() => {
+    let isMounted = true;
+    if (NativeModules.ManageStorageModule && NativeModules.ManageStorageModule.getVideoThumbnail && path) {
+      NativeModules.ManageStorageModule.getVideoThumbnail(path)
+        .then((uri) => {
+          if (isMounted && uri) {
+            setThumbUri(uri);
+          }
+        })
+        .catch(() => {});
+    }
+    return () => {
+      isMounted = false;
+    };
+  }, [path]);
+
+  if (thumbUri) {
+    return (
+      <View style={styles.thumbnailContainer}>
+        <Image
+          source={{ uri: thumbUri }}
+          style={styles.thumbnailImageCover}
+          resizeMode="cover"
+        />
+        <View style={styles.videoBadge}>
+          <Text style={styles.videoBadgeText}>▶</Text>
+        </View>
+      </View>
+    );
+  }
+
+  return (
+    <View style={[styles.thumbnailImage, styles.thumbnailPlaceholder]}>
+      <Text style={styles.placeholderPlayIcon}>▶</Text>
+    </View>
+  );
+});
 
 export const CategoryListScreen = ({ route, navigation }) => {
   const { categoryName = 'Files', files = [] } = route.params || {};
@@ -66,11 +118,6 @@ export const CategoryListScreen = ({ route, navigation }) => {
   const isArchiveFile = (fileName = '') => {
     const ext = getExtension(fileName);
     return COMPRESSED_EXTENSIONS.includes(ext);
-  };
-
-  const isImageFile = (fileName = '') => {
-    const ext = getExtension(fileName);
-    return IMAGE_EXTENSIONS.includes(ext);
   };
 
   const handleFilePress = async (item) => {
@@ -235,7 +282,9 @@ export const CategoryListScreen = ({ route, navigation }) => {
   const renderFileItem = ({ item, index }) => {
     if (!item) return null;
 
-    const isImgCategory = categoryName === 'Images';
+    // Strict category checks so mixed folders like Downloads/Extracted remain fast and crash-free
+    const isImg = categoryName === 'Images';
+    const isVid = categoryName === 'Videos';
 
     return (
       <TouchableOpacity
@@ -243,14 +292,19 @@ export const CategoryListScreen = ({ route, navigation }) => {
         activeOpacity={0.7}
         onPress={() => handleFilePress(item)}
       >
-        {/* Only render Image component when inside Images category */}
-        {isImgCategory && item.path ? (
+        {/* Render Image Thumbnail (Only in Images category) */}
+        {isImg && item.path ? (
           <Image
             source={{ uri: 'file://' + item.path }}
             style={styles.thumbnailImage}
             resizeMode="cover"
             onError={() => {}}
           />
+        ) : null}
+
+        {/* Render Video Thumbnail (Only in Videos category) */}
+        {isVid && item.path ? (
+          <VideoThumbnail path={item.path} />
         ) : null}
 
         {/* File Info */}
@@ -524,6 +578,12 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
   },
+  thumbnailContainer: {
+    position: 'relative',
+    width: 44,
+    height: 44,
+    marginRight: 12,
+  },
   thumbnailImage: {
     width: 44,
     height: 44,
@@ -531,6 +591,38 @@ const styles = StyleSheet.create({
     borderColor: '#000000',
     marginRight: 12,
     backgroundColor: '#F0F0F0',
+  },
+  thumbnailImageCover: {
+    width: 44,
+    height: 44,
+    borderWidth: 1,
+    borderColor: '#000000',
+    backgroundColor: '#F0F0F0',
+  },
+  thumbnailPlaceholder: {
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#EAEAEA',
+  },
+  placeholderPlayIcon: {
+    fontSize: 14,
+    color: '#333333',
+  },
+  videoBadge: {
+    position: 'absolute',
+    bottom: 2,
+    right: 2,
+    backgroundColor: 'rgba(0, 0, 0, 0.75)',
+    borderRadius: 3,
+    paddingHorizontal: 3,
+    paddingVertical: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  videoBadgeText: {
+    fontSize: 8,
+    color: '#FFFFFF',
+    fontWeight: 'bold',
   },
   fileDetails: {
     flex: 1,

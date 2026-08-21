@@ -10,7 +10,7 @@ import {
   Alert,
   DeviceEventEmitter,
 } from 'react-native';
-import { useFocusEffect } from '@react-navigation/native';
+
 import { scanDeviceStorage } from '../services/FileScanner';
 
 const CATEGORIES = [
@@ -50,17 +50,10 @@ export const HomeScreen = ({ navigation }) => {
     }
   }, []);
 
-  // Run on mount
+  // Run only once on initial mount
   useEffect(() => {
     runFileScan();
   }, [runFileScan]);
-
-  // Re-run scan whenever HomeScreen comes into focus
-  useFocusEffect(
-    useCallback(() => {
-      runFileScan();
-    }, [runFileScan])
-  );
 
   // Listen for real-time extraction & creation events
   useEffect(() => {

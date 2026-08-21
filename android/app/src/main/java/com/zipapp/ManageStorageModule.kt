@@ -141,7 +141,8 @@ class ManageStorageModule(private val reactContext: ReactApplicationContext) :
                 }
 
                 // Check cache first
-                val thumbFileName = "vthumb_" + cleanPath.hashCode() + ".jpg"
+                val safeHash = Math.abs(cleanPath.hashCode())
+                val thumbFileName = "vthumb_" + safeHash + ".jpg"
                 val thumbFile = File(reactContext.cacheDir, thumbFileName)
                 if (thumbFile.exists() && thumbFile.length() > 0) {
                     safeResolve("file://" + thumbFile.absolutePath)
@@ -150,13 +151,35 @@ class ManageStorageModule(private val reactContext: ReactApplicationContext) :
 
                 retriever = MediaMetadataRetriever()
                 retriever.setDataSource(cleanPath)
-                val bitmap: Bitmap? = retriever.getFrameAtTime(1000000) ?: retriever.frameAtTime
+                val bitmap: Bitmap? = try {
+                    retriever.getFrameAtTime(1000000, MediaMetadataRetriever.OPTION_CLOSEST_SYNC)
+                        ?: retriever.frameAtTime
+                } catch (e: Throwable) {
+                    retriever.frameAtTime
+                }
 
                 if (bitmap != null) {
+                    val maxDim = 240
+                    val finalBitmap = if (bitmap.width > maxDim || bitmap.height > maxDim) {
+                        val scale = maxDim.toFloat() / Math.max(bitmap.width, bitmap.height)
+                        val targetW = Math.max(1, (bitmap.width * scale).toInt())
+                        val targetH = Math.max(1, (bitmap.height * scale).toInt())
+                        val scaled = Bitmap.createScaledBitmap(bitmap, targetW, targetH, true)
+                        if (scaled != bitmap) {
+                            bitmap.recycle()
+                        }
+                        scaled
+                    } else {
+                        bitmap
+                    }
+
                     val out = FileOutputStream(thumbFile)
-                    bitmap.compress(Bitmap.CompressFormat.JPEG, 70, out)
+                    finalBitmap.compress(Bitmap.CompressFormat.JPEG, 75, out)
                     out.flush()
                     out.close()
+                    if (finalBitmap != bitmap) {
+                        finalBitmap.recycle()
+                    }
                     safeResolve("file://" + thumbFile.absolutePath)
                 } else {
                     safeResolve(null)
