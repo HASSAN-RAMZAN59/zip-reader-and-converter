@@ -13,7 +13,7 @@ export const AppNavigator = () => {
       initialRouteName="Splash"
       screenOptions={{
         headerShown: false,
-        animation: 'slide_from_right',
+        animation: 'fade',
       }}
     >
       <Stack.Screen name="Splash" component={SplashScreen} />

@@ -62,7 +62,7 @@ export const PermissionsScreen = ({ navigation }) => {
     <View style={styles.container}>
       <Text style={styles.title}>Storage Access Required</Text>
       <Text style={styles.description}>
-        Zip App requires All Files Access  to scan, compress, and extract files across your device.
+        Zip App requires All Files Access to scan, compress, and extract files across your device.
       </Text>
 
       <View style={styles.buttonContainer}>
