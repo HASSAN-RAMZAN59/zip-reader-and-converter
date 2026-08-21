@@ -1,33 +1,60 @@
-import React, { useEffect, useState } from 'react';
-import { View, Text, Button, StyleSheet, Alert } from 'react-native';
+import React, { useEffect, useState, useCallback, useRef } from 'react';
+import { View, Text, Button, StyleSheet, AppState } from 'react-native';
 import { permissionsService } from '../services/permissionsService';
+import { storageService } from '../services/storageService';
 
 export const PermissionsScreen = ({ navigation }) => {
-  const [permissionStatus, setPermissionStatus] = useState('checking');
+  const [checking, setChecking] = useState(false);
+  const isNavigatingRef = useRef(false);
+
+  const checkAndNavigate = useCallback(async () => {
+    if (isNavigatingRef.current) return;
+
+    try {
+      const isGranted = await permissionsService.checkStoragePermission();
+      if (isGranted) {
+        isNavigatingRef.current = true;
+        const hasLaunched = await storageService.getHasLaunched();
+        if (hasLaunched) {
+          navigation.replace('Home');
+        } else {
+          navigation.replace('Onboarding');
+        }
+      }
+    } catch (error) {
+      console.error('Error checking permission in PermissionsScreen:', error);
+    }
+  }, [navigation]);
 
   useEffect(() => {
-    checkPermissionOnMount();
-  }, []);
+    // Initial check on mount
+    checkAndNavigate();
 
-  const checkPermissionOnMount = async () => {
-    const isGranted = await permissionsService.checkStoragePermission();
-    if (isGranted) {
-      navigation.replace('Onboarding');
-    } else {
-      setPermissionStatus('denied');
-    }
-  };
+    // Listen for AppState changes in real-time (e.g. when user returns from Settings or OS dialog)
+    const subscription = AppState.addEventListener('change', (nextAppState) => {
+      if (nextAppState === 'active') {
+        checkAndNavigate();
+      }
+    });
+
+    return () => {
+      subscription.remove();
+    };
+  }, [checkAndNavigate]);
 
   const handleGrantPermission = async () => {
-    const isGranted = await permissionsService.requestStoragePermission();
-    if (isGranted) {
-      navigation.replace('Onboarding');
-    } else {
-      Alert.alert(
-        'Permission Required',
-        'Storage permission is necessary for Zip App to scan, manage, and extract zip files on your device.',
-        [{ text: 'OK' }]
-      );
+    if (checking || isNavigatingRef.current) return;
+    setChecking(true);
+
+    try {
+      const isGranted = await permissionsService.requestStoragePermission();
+      if (isGranted) {
+        await checkAndNavigate();
+      }
+    } catch (error) {
+      console.error('Error handling grant permission:', error);
+    } finally {
+      setChecking(false);
     }
   };
 
@@ -35,13 +62,14 @@ export const PermissionsScreen = ({ navigation }) => {
     <View style={styles.container}>
       <Text style={styles.title}>Storage Access Required</Text>
       <Text style={styles.description}>
-        Zip App requires All Files Access (MANAGE_EXTERNAL_STORAGE) to scan, compress, and extract files across your device.
+        Zip App requires All Files Access  to scan, compress, and extract files across your device.
       </Text>
 
       <View style={styles.buttonContainer}>
         <Button
-          title="Grant Permission"
+          title={checking ? 'Checking...' : 'Grant Permission'}
           onPress={handleGrantPermission}
+          disabled={checking}
           color="#000000"
         />
       </View>
@@ -78,3 +106,4 @@ const styles = StyleSheet.create({
 });
 
 export default PermissionsScreen;
+
