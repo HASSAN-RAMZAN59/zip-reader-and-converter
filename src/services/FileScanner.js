@@ -1,50 +1,36 @@
 import RNFS from 'react-native-fs';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
+// Strict extension mapping based on user specifications
 const EXTENSION_CATEGORIES = {
-  Compressed: ['.zip', '.rar', '.7z'],
-  Documents: [
-    '.docx',
-    '.doc',
-    '.xlsx',
-    '.xls',
-    '.pptx',
-    '.ppt',
-    '.pdf',
-    '.txt',
-    '.csv',
-    '.rtf',
-    '.odt',
-    '.epub',
-  ],
-  Images: ['.png', '.jpg', '.jpeg', '.webp', '.gif', '.bmp', '.svg', '.heic', '.heif'],
-  Videos: ['.mp4', '.mkv', '.avi', '.mov', '.3gp', '.webm', '.flv', '.wmv', '.m4v', '.ts'],
-  Audios: [
-    '.mp3',
-    '.m4a',
-    '.wav',
-    '.ogg',
-    '.opus',
-    '.aac',
-    '.flac',
-    '.amr',
-    '.wma',
-    '.mid',
-    '.midi',
-  ],
-  APK: ['.apk', '.xapk', '.apks'],
+  Compressed: ['.zip', '.rar', '.7z', '.tar', '.gz'],
+  Documents: ['.docx', '.xlsx', '.pptx', '.pdf', '.txt'],
+  Images: ['.png', '.jpg', '.jpeg'],
+  Videos: ['.mp4'],
+  Audios: ['.mp3', '.wav', '.m4a'],
+  APK: ['.apk'],
 };
 
-// Folders to skip to avoid permission crashes and slow scans
-const IGNORED_FOLDER_NAMES = new Set([
-  'Android',
-  'data',
-  'obb',
-  '.thumbnails',
-  '.trash',
-  'cache',
-  'caches',
-]);
+// Target list of standard public and user media directories
+const getTargetDirectories = () => {
+  const root = RNFS.ExternalStorageDirectoryPath;
+  const downloadDir = RNFS.DownloadDirectoryPath || `${root}/Download`;
+
+  return [
+    downloadDir,
+    `${root}/Documents`,
+    `${root}/DCIM/Camera`,
+    `${root}/DCIM`,
+    `${root}/Pictures`,
+    `${root}/Music`,
+    `${root}/Movies`,
+    `${root}/Android/media/com.whatsapp/WhatsApp/Media/WhatsApp Images`,
+    `${root}/Android/media/com.whatsapp/WhatsApp/Media/WhatsApp Video`,
+    `${root}/Android/media/com.whatsapp/WhatsApp/Media/WhatsApp Documents`,
+    `${downloadDir}/Extracted`,
+    `${root}/ZipApp`,
+  ];
+};
 
 const getFileExtension = (filename) => {
   if (!filename) return '';
@@ -54,13 +40,12 @@ const getFileExtension = (filename) => {
 };
 
 /**
- * Recursively scans device external storage and categorizes files
- * @param {string} rootPath - Starting directory (defaults to RNFS.ExternalStorageDirectoryPath)
- * @returns {Promise<Object>} Object with arrays of file objects for each category
+ * Exact Path Targeted Scanner (Non-recursive)
+ * Reads only predefined public and user media directories using shallow RNFS.readDir() calls.
+ *
+ * @returns {Promise<Object>} Object containing categorized file arrays
  */
-export const scanDeviceStorage = async (
-  rootPath = RNFS.ExternalStorageDirectoryPath
-) => {
+export const scanDeviceStorage = async () => {
   const categorizedFiles = {
     Compressed: [],
     Extracted: [],
@@ -72,32 +57,26 @@ export const scanDeviceStorage = async (
     Download: [],
   };
 
-  // Load known zip archive names and tracked extraction locations from history
+  const seenFilePaths = new Set();
+
+  // Load known zip archive names for extraction matching
   let knownZipBaseNames = [];
   try {
     const historyJson = await AsyncStorage.getItem('@recent_zips');
     if (historyJson) {
       const history = JSON.parse(historyJson);
-      knownZipBaseNames = history.map((item) => {
-        const cleanName = (item.name || '').replace(/\.[^/.]+$/, '').toLowerCase();
-        return cleanName;
-      }).filter(Boolean);
+      knownZipBaseNames = history
+        .map((item) => {
+          const cleanName = (item.name || '').replace(/\.[^/.]+$/, '').toLowerCase();
+          return cleanName;
+        })
+        .filter(Boolean);
     }
   } catch (e) {
     // Ignore storage read error
   }
 
-  const isIgnoredDir = (dirName, dirPath) => {
-    if (!dirName || dirName.startsWith('.')) return true;
-    if (IGNORED_FOLDER_NAMES.has(dirName)) return true;
-    if (dirPath && (dirPath.includes('/Android/data') || dirPath.includes('/Android/obb'))) {
-      return true;
-    }
-    return false;
-  };
-
-  const isExtractedPath = (filePath, normalizedPath) => {
-    // 1. Keyword check in path or folder name
+  const isExtractedPath = (normalizedPath) => {
     const extractionKeywords = [
       '/extracted',
       '/extract',
@@ -118,7 +97,6 @@ export const scanDeviceStorage = async (
       }
     }
 
-    // 2. Check if file is inside a folder that matches any created zip name
     for (const baseName of knownZipBaseNames) {
       if (baseName.length > 2 && normalizedPath.includes(`/${baseName}/`)) {
         return true;
@@ -128,64 +106,70 @@ export const scanDeviceStorage = async (
     return false;
   };
 
-  try {
-    const queue = [rootPath];
+  const processFile = (item) => {
+    if (!item || !item.path || seenFilePaths.has(item.path)) return;
+    if (item.name && item.name.startsWith('.')) return; // Skip hidden files
 
-    while (queue.length > 0) {
-      const currentDir = queue.shift();
+    seenFilePaths.add(item.path);
 
-      try {
-        const items = await RNFS.readDir(currentDir);
+    const ext = getFileExtension(item.name);
+    const fileInfo = {
+      name: item.name,
+      path: item.path,
+      size: item.size || 0,
+      mtime: item.mtime
+        ? item.mtime instanceof Date
+          ? item.mtime.toISOString()
+          : String(item.mtime)
+        : null,
+      extension: ext,
+    };
 
-        for (const item of items) {
-          if (item.isDirectory()) {
-            if (!isIgnoredDir(item.name, item.path)) {
-              queue.push(item.path);
-            }
-          } else if (item.isFile()) {
-            const ext = getFileExtension(item.name);
-            const fileInfo = {
-              name: item.name,
-              path: item.path,
-              size: item.size || 0,
-              mtime: item.mtime
-                ? item.mtime instanceof Date
-                  ? item.mtime.toISOString()
-                  : String(item.mtime)
-                : null,
-              extension: ext,
-            };
+    const normalizedPath = item.path.toLowerCase();
 
-            const normalizedPath = item.path.toLowerCase();
+    // Download category
+    if (
+      normalizedPath.includes('/download/') ||
+      normalizedPath.includes('/downloads/')
+    ) {
+      categorizedFiles.Download.push(fileInfo);
+    }
 
-            // Download category (all files within Download directory)
-            if (
-              normalizedPath.includes('/download/') ||
-              normalizedPath.includes('/downloads/')
-            ) {
-              categorizedFiles.Download.push(fileInfo);
-            }
+    // Extracted category
+    if (isExtractedPath(normalizedPath)) {
+      categorizedFiles.Extracted.push(fileInfo);
+    }
 
-            // Extracted category (scans anywhere across internal storage)
-            if (isExtractedPath(item.path, normalizedPath)) {
-              categorizedFiles.Extracted.push(fileInfo);
-            }
-
-            // Extension-based categories
-            for (const [category, extensions] of Object.entries(EXTENSION_CATEGORIES)) {
-              if (extensions.includes(ext)) {
-                categorizedFiles[category].push(fileInfo);
-                break;
-              }
-            }
-          }
-        }
-      } catch (dirError) {
-        // Skip unreadable / permission-restricted subdirectories
+    // Strict extension categories
+    for (const [category, extensions] of Object.entries(EXTENSION_CATEGORIES)) {
+      if (extensions.includes(ext)) {
+        categorizedFiles[category].push(fileInfo);
+        break;
       }
     }
+  };
+
+  const targetDirs = getTargetDirectories();
+
+  try {
+    // Shallow read on each target path using Promise.all
+    await Promise.all(
+      targetDirs.map(async (dirPath) => {
+        try {
+          const items = await RNFS.readDir(dirPath);
+          for (let i = 0; i < items.length; i++) {
+            const item = items[i];
+            if (item.isFile()) {
+              processFile(item);
+            }
+          }
+        } catch (dirErr) {
+          // Safely ignore directories that do not exist on this specific device
+        }
+      })
+    );
   } catch (error) {
-    console.error('Error during storage scan:', error);
+    console.error('Error during exact path storage scan:', error);
   }
 
   return categorizedFiles;

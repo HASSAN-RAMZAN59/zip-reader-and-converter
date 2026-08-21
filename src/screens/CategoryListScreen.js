@@ -12,77 +12,131 @@ import {
   ActivityIndicator,
   Alert,
   DeviceEventEmitter,
+  Image,
+  NativeModules,
 } from 'react-native';
-import RNFS from 'react-native-fs';
 import DocumentPicker from 'react-native-document-picker';
 import { extractZipArchive, checkArchiveEncrypted } from '../services/ZipService';
 
-const COMPRESSED_EXTENSIONS = ['.zip', '.rar', '.7z'];
+const COMPRESSED_EXTENSIONS = ['.zip', '.rar', '.7z', '.tar', '.gz'];
+const IMAGE_EXTENSIONS = ['.png', '.jpg', '.jpeg', '.webp', '.heic', '.heif', '.gif', '.bmp', '.svg'];
+
+const getExtension = (fileName = '') => {
+  if (!fileName || typeof fileName !== 'string') return '';
+  const lastDot = fileName.lastIndexOf('.');
+  if (lastDot === -1) return '';
+  return fileName.substring(lastDot).toLowerCase();
+};
 
 export const CategoryListScreen = ({ route, navigation }) => {
   const { categoryName = 'Files', files = [] } = route.params || {};
 
-  // Modal State
-  const [modalVisible, setModalVisible] = useState(false);
-  const [selectedFile, setSelectedFile] = useState(null);
+  // Safe file list filtering
+  const validFiles = Array.isArray(files)
+    ? files.filter((f) => f && typeof f === 'object' && f.name)
+    : [];
+
+  // Extraction Modal State
+  const [extractModalVisible, setExtractModalVisible] = useState(false);
+  const [selectedArchive, setSelectedArchive] = useState(null);
   const [password, setPassword] = useState('');
   const [isEncrypted, setIsEncrypted] = useState(false);
   const [isExtracting, setIsExtracting] = useState(false);
   const [extractingStatus, setExtractingStatus] = useState('');
 
+  // Image Preview Modal State
+  const [imageModalVisible, setImageModalVisible] = useState(false);
+  const [previewImage, setPreviewImage] = useState(null);
+
+  // File Detail / Opener Modal State
+  const [detailModalVisible, setDetailModalVisible] = useState(false);
+  const [selectedDetailFile, setSelectedDetailFile] = useState(null);
+
   const formatFileSize = (bytes) => {
-    if (!bytes || bytes === 0) return '0 B';
+    const num = Number(bytes);
+    if (!num || isNaN(num) || num <= 0) return '0 B';
     const k = 1024;
-    const sizes = ['B', 'KB', 'MB', 'GB'];
-    const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
+    const sizes = ['B', 'KB', 'MB', 'GB', 'TB'];
+    const i = Math.floor(Math.log(num) / Math.log(k));
+    if (i < 0) return '0 B';
+    const idx = Math.min(i, sizes.length - 1);
+    return parseFloat((num / Math.pow(k, idx)).toFixed(1)) + ' ' + sizes[idx];
   };
 
   const isArchiveFile = (fileName = '') => {
-    const lower = fileName.toLowerCase();
-    return COMPRESSED_EXTENSIONS.some((ext) => lower.endsWith(ext));
+    const ext = getExtension(fileName);
+    return COMPRESSED_EXTENSIONS.includes(ext);
+  };
+
+  const isImageFile = (fileName = '') => {
+    const ext = getExtension(fileName);
+    return IMAGE_EXTENSIONS.includes(ext);
   };
 
   const handleFilePress = async (item) => {
+    if (!item) return;
+
     if (isArchiveFile(item.name) || categoryName === 'Compressed') {
-      setSelectedFile(item);
+      setSelectedArchive(item);
       setPassword('');
       setIsEncrypted(false);
-      setModalVisible(true);
+      setExtractModalVisible(true);
 
-      // Auto-detect if archive is password protected
       try {
         const encrypted = await checkArchiveEncrypted(item.path);
         setIsEncrypted(encrypted);
       } catch (err) {
         setIsEncrypted(false);
       }
+    } else if (isImageFile(item.name) || categoryName === 'Images') {
+      setPreviewImage(item);
+      setImageModalVisible(true);
     } else {
+      setSelectedDetailFile(item);
+      setDetailModalVisible(true);
+    }
+  };
+
+  const openWithSystemApp = async (filePath) => {
+    try {
+      if (
+        NativeModules.ManageStorageModule &&
+        NativeModules.ManageStorageModule.openFile
+      ) {
+        await NativeModules.ManageStorageModule.openFile(filePath, null);
+      } else {
+        Alert.alert('Open File', `Path: ${filePath}`);
+      }
+    } catch (err) {
+      console.error('Failed to open file:', err);
       Alert.alert(
-        item.name,
-        `Path: ${item.path}\nSize: ${formatFileSize(item.size)}`
+        'Cannot Open File',
+        'No suitable app found on device to open this file format.'
       );
     }
   };
 
-  const closeModal = () => {
+  const closeExtractModal = () => {
     if (!isExtracting) {
-      setModalVisible(false);
-      setSelectedFile(null);
+      setExtractModalVisible(false);
+      setSelectedArchive(null);
       setPassword('');
       setIsEncrypted(false);
     }
   };
 
   const getArchiveBaseName = (fileName = '') => {
-    return fileName.replace(/\.[^/.]+$/, '');
+    return (fileName || '').replace(/\.[^/.]+$/, '');
   };
 
   const performExtraction = async (destinationDirectory) => {
-    if (!selectedFile) return;
+    if (!selectedArchive) return;
 
     if (isEncrypted && !password.trim()) {
-      Alert.alert('Password Required', 'This archive is password protected. Please enter the password.');
+      Alert.alert(
+        'Password Required',
+        'This archive is password protected. Please enter the password.'
+      );
       return;
     }
 
@@ -91,21 +145,18 @@ export const CategoryListScreen = ({ route, navigation }) => {
 
     try {
       const result = await extractZipArchive(
-        selectedFile.path,
+        selectedArchive.path,
         destinationDirectory,
         password
       );
 
-      // Trigger event listener on HomeScreen
       DeviceEventEmitter.emit('EXTRACTION_SUCCESS', result);
-
-      // Invoke optional callback if passed
       if (typeof route.params?.onExtractSuccess === 'function') {
         route.params.onExtractSuccess(result);
       }
 
-      setModalVisible(false);
-      setSelectedFile(null);
+      setExtractModalVisible(false);
+      setSelectedArchive(null);
       setPassword('');
       setIsEncrypted(false);
 
@@ -121,7 +172,8 @@ export const CategoryListScreen = ({ route, navigation }) => {
       }
       Alert.alert(
         'Extraction Error',
-        error.message || 'Failed to extract archive. Please verify if password is correct or if file is corrupted.'
+        error.message ||
+          'Failed to extract archive. Please verify if password is correct or if file is corrupted.'
       );
     } finally {
       setIsExtracting(false);
@@ -129,14 +181,13 @@ export const CategoryListScreen = ({ route, navigation }) => {
     }
   };
 
-  // Button 1: "Extract Here" (extracts to the archive's parent folder)
   const handleExtractHere = () => {
-    if (!selectedFile) return;
-    const parentDir = selectedFile.path.substring(
+    if (!selectedArchive || !selectedArchive.path) return;
+    const parentDir = selectedArchive.path.substring(
       0,
-      selectedFile.path.lastIndexOf('/')
+      selectedArchive.path.lastIndexOf('/')
     );
-    const baseName = getArchiveBaseName(selectedFile.name);
+    const baseName = getArchiveBaseName(selectedArchive.name);
     const targetDir = `${parentDir}/${baseName}`;
     performExtraction(targetDir);
   };
@@ -155,16 +206,15 @@ export const CategoryListScreen = ({ route, navigation }) => {
     return null;
   };
 
-  // Button 3: "Choose Custom Destination Folder..."
   const handleExtractToCustomFolder = async () => {
-    if (!selectedFile) return;
+    if (!selectedArchive) return;
 
     try {
       const dirResult = await DocumentPicker.pickDirectory();
       if (dirResult && dirResult.uri) {
         const chosenPath = convertSafUriToPath(dirResult.uri);
         if (chosenPath) {
-          const baseName = getArchiveBaseName(selectedFile.name);
+          const baseName = getArchiveBaseName(selectedArchive.name);
           const targetDir = `${chosenPath}/${baseName}`;
           performExtraction(targetDir);
         } else {
@@ -175,17 +225,17 @@ export const CategoryListScreen = ({ route, navigation }) => {
         }
       }
     } catch (err) {
-      if (DocumentPicker.isCancel(err)) {
-        // User cancelled folder picker
-      } else {
+      if (!DocumentPicker.isCancel(err)) {
         console.error('Directory picker error:', err);
         Alert.alert('Error', 'Failed to pick custom folder.');
       }
     }
   };
 
-  const renderFileItem = ({ item }) => {
-    const isArchive = isArchiveFile(item.name) || categoryName === 'Compressed';
+  const renderFileItem = ({ item, index }) => {
+    if (!item) return null;
+
+    const isImgCategory = categoryName === 'Images';
 
     return (
       <TouchableOpacity
@@ -193,19 +243,23 @@ export const CategoryListScreen = ({ route, navigation }) => {
         activeOpacity={0.7}
         onPress={() => handleFilePress(item)}
       >
+        {/* Only render Image component when inside Images category */}
+        {isImgCategory && item.path ? (
+          <Image
+            source={{ uri: 'file://' + item.path }}
+            style={styles.thumbnailImage}
+            resizeMode="cover"
+            onError={() => {}}
+          />
+        ) : null}
+
+        {/* File Info */}
         <View style={styles.fileDetails}>
           <Text style={styles.fileName} numberOfLines={1} ellipsizeMode="middle">
-            {item.name}
+            {item.name || 'Unnamed File'}
           </Text>
-          {item.size !== undefined && (
-            <Text style={styles.fileSize}>{formatFileSize(item.size)}</Text>
-          )}
+          <Text style={styles.fileSize}>{formatFileSize(item.size)}</Text>
         </View>
-        {isArchive && (
-          <View style={styles.archiveBadge}>
-            <Text style={styles.archiveBadgeText}>ZIP</Text>
-          </View>
-        )}
       </TouchableOpacity>
     );
   };
@@ -224,16 +278,22 @@ export const CategoryListScreen = ({ route, navigation }) => {
             <Text style={styles.backButtonText}>{'< Back'}</Text>
           </TouchableOpacity>
           <Text style={styles.headerTitle} numberOfLines={1}>
-            {categoryName} ({files.length})
+            {categoryName} ({validFiles.length})
           </Text>
         </View>
 
         {/* File List */}
         <FlatList
-          data={files}
-          keyExtractor={(item, index) => item.path || `${item.name}-${index}`}
+          data={validFiles}
+          keyExtractor={(item, index) =>
+            item?.path ? `${item.path}-${index}` : `file-${index}`
+          }
           renderItem={renderFileItem}
           contentContainerStyle={styles.listContent}
+          initialNumToRender={15}
+          maxToRenderPerBatch={20}
+          windowSize={7}
+          removeClippedSubviews={true}
           ListEmptyComponent={
             <View style={styles.emptyContainer}>
               <Text style={styles.emptyText}>No files found in this category.</Text>
@@ -241,21 +301,20 @@ export const CategoryListScreen = ({ route, navigation }) => {
           }
         />
 
-        {/* Extraction Action Modal */}
+        {/* 1. Extraction Action Modal */}
         <Modal
-          visible={modalVisible}
+          visible={extractModalVisible}
           transparent={true}
           animationType="fade"
-          onRequestClose={closeModal}
+          onRequestClose={closeExtractModal}
         >
           <View style={styles.modalOverlay}>
             <View style={styles.modalContent}>
               <Text style={styles.modalTitle}>Archive Extraction</Text>
               <Text style={styles.modalSubtitle} numberOfLines={2}>
-                {selectedFile ? selectedFile.name : ''}
+                {selectedArchive ? selectedArchive.name : ''}
               </Text>
 
-              {/* Password input shown ONLY if archive is encrypted */}
               {isEncrypted ? (
                 <View style={styles.passwordSection}>
                   <Text style={styles.inputLabel}>Password Protected Archive</Text>
@@ -272,7 +331,6 @@ export const CategoryListScreen = ({ route, navigation }) => {
                 </View>
               ) : null}
 
-              {/* Loading Indicator */}
               {isExtracting && (
                 <View style={styles.loadingContainer}>
                   <ActivityIndicator size="small" color="#000000" />
@@ -280,7 +338,6 @@ export const CategoryListScreen = ({ route, navigation }) => {
                 </View>
               )}
 
-              {/* Action Buttons */}
               <TouchableOpacity
                 style={[styles.modalButton, isExtracting && styles.disabledButton]}
                 activeOpacity={0.7}
@@ -307,8 +364,106 @@ export const CategoryListScreen = ({ route, navigation }) => {
                   isExtracting && styles.disabledButton,
                 ]}
                 activeOpacity={0.7}
-                onPress={closeModal}
+                onPress={closeExtractModal}
                 disabled={isExtracting}
+              >
+                <Text style={styles.cancelButtonText}>Cancel</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </Modal>
+
+        {/* 2. Image Full Preview Modal */}
+        <Modal
+          visible={imageModalVisible}
+          transparent={true}
+          animationType="fade"
+          onRequestClose={() => setImageModalVisible(false)}
+        >
+          <View style={styles.previewModalOverlay}>
+            <View style={styles.previewModalContent}>
+              <View style={styles.previewHeader}>
+                <Text style={styles.previewTitle} numberOfLines={1}>
+                  {previewImage ? previewImage.name : ''}
+                </Text>
+                <Text style={styles.previewMeta}>
+                  {previewImage ? formatFileSize(previewImage.size) : ''}
+                </Text>
+              </View>
+
+              {previewImage && previewImage.path ? (
+                <Image
+                  source={{ uri: 'file://' + previewImage.path }}
+                  style={styles.fullPreviewImage}
+                  resizeMode="contain"
+                />
+              ) : null}
+
+              <View style={styles.previewFooter}>
+                <TouchableOpacity
+                  style={styles.modalButton}
+                  activeOpacity={0.7}
+                  onPress={() => {
+                    if (previewImage && previewImage.path) {
+                      openWithSystemApp(previewImage.path);
+                    }
+                  }}
+                >
+                  <Text style={styles.modalButtonText}>Open in Gallery / Full Screen</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={styles.cancelButton}
+                  activeOpacity={0.7}
+                  onPress={() => setImageModalVisible(false)}
+                >
+                  <Text style={styles.cancelButtonText}>Close Preview</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </View>
+        </Modal>
+
+        {/* 3. File Detail & System Opener Modal (Videos, Audios, Docs, APK) */}
+        <Modal
+          visible={detailModalVisible}
+          transparent={true}
+          animationType="fade"
+          onRequestClose={() => setDetailModalVisible(false)}
+        >
+          <View style={styles.modalOverlay}>
+            <View style={styles.modalContent}>
+              <Text style={styles.modalTitle}>File Details</Text>
+              <Text style={styles.modalSubtitle} numberOfLines={2}>
+                {selectedDetailFile ? selectedDetailFile.name : ''}
+              </Text>
+
+              <View style={styles.detailInfoBox}>
+                <Text style={styles.detailText}>
+                  Size: {selectedDetailFile ? formatFileSize(selectedDetailFile.size) : ''}
+                </Text>
+                <Text style={styles.detailText} numberOfLines={3}>
+                  Path: {selectedDetailFile ? selectedDetailFile.path : ''}
+                </Text>
+              </View>
+
+              <TouchableOpacity
+                style={styles.modalButton}
+                activeOpacity={0.7}
+                onPress={() => {
+                  if (selectedDetailFile && selectedDetailFile.path) {
+                    setDetailModalVisible(false);
+                    openWithSystemApp(selectedDetailFile.path);
+                  }
+                }}
+              >
+                <Text style={styles.modalButtonText}>Open File</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={styles.cancelButton}
+                activeOpacity={0.7}
+                onPress={() => setDetailModalVisible(false)}
               >
                 <Text style={styles.cancelButtonText}>Cancel</Text>
               </TouchableOpacity>
@@ -367,12 +522,18 @@ const styles = StyleSheet.create({
     padding: 12,
     marginBottom: 8,
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
+  },
+  thumbnailImage: {
+    width: 44,
+    height: 44,
+    borderWidth: 1,
+    borderColor: '#000000',
+    marginRight: 12,
+    backgroundColor: '#F0F0F0',
   },
   fileDetails: {
     flex: 1,
-    marginRight: 8,
   },
   fileName: {
     fontSize: 14,
@@ -382,17 +543,6 @@ const styles = StyleSheet.create({
   },
   fileSize: {
     fontSize: 12,
-    color: '#000000',
-  },
-  archiveBadge: {
-    borderWidth: 1,
-    borderColor: '#000000',
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-  },
-  archiveBadgeText: {
-    fontSize: 10,
-    fontWeight: 'bold',
     color: '#000000',
   },
   emptyContainer: {
@@ -431,6 +581,9 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginBottom: 16,
     fontWeight: '500',
+  },
+  passwordSection: {
+    marginBottom: 10,
   },
   inputLabel: {
     fontSize: 13,
@@ -490,6 +643,58 @@ const styles = StyleSheet.create({
   },
   disabledButton: {
     opacity: 0.5,
+  },
+  previewModalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.85)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 16,
+  },
+  previewModalContent: {
+    width: '100%',
+    maxHeight: '85%',
+    backgroundColor: '#FFFFFF',
+    borderWidth: 2,
+    borderColor: '#000000',
+    padding: 16,
+  },
+  previewHeader: {
+    borderBottomWidth: 1,
+    borderBottomColor: '#000000',
+    paddingBottom: 8,
+    marginBottom: 12,
+  },
+  previewTitle: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#000000',
+  },
+  previewMeta: {
+    fontSize: 12,
+    color: '#000000',
+    marginTop: 2,
+  },
+  fullPreviewImage: {
+    width: '100%',
+    height: 300,
+    backgroundColor: '#000000',
+    marginBottom: 14,
+  },
+  previewFooter: {
+    marginTop: 6,
+  },
+  detailInfoBox: {
+    borderWidth: 1,
+    borderColor: '#000000',
+    padding: 10,
+    marginBottom: 14,
+    backgroundColor: '#FFFFFF',
+  },
+  detailText: {
+    fontSize: 13,
+    color: '#000000',
+    marginBottom: 4,
   },
 });
 

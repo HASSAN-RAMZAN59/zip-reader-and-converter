@@ -123,7 +123,7 @@ export const HomeScreen = ({ navigation }) => {
         <View style={styles.headerSection}>
           <Text style={styles.headerTitle}>Categories</Text>
           {isScanning && (
-            <Text style={styles.scanningText}>Scanning device...</Text>
+            <Text style={styles.scanningText}>Scanning entire device...</Text>
           )}
         </View>
 
