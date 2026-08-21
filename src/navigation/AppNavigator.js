@@ -4,6 +4,7 @@ import SplashScreen from '../screens/SplashScreen';
 import PermissionsScreen from '../screens/PermissionsScreen';
 import OnboardingScreen from '../screens/OnboardingScreen';
 import HomeScreen from '../screens/HomeScreen';
+import CategoryListScreen from '../screens/CategoryListScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -34,6 +35,11 @@ export const AppNavigator = () => {
         name="Home"
         component={HomeScreen}
         options={{ animation: 'fade', animationDuration: 400 }}
+      />
+      <Stack.Screen
+        name="CategoryList"
+        component={CategoryListScreen}
+        options={{ animation: 'slide_from_right' }}
       />
     </Stack.Navigator>
   );

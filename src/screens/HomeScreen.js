@@ -1,14 +1,15 @@
-import React from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   View,
   Text,
   StyleSheet,
   TouchableOpacity,
   FlatList,
-  Alert,
   SafeAreaView,
   StatusBar,
+  Alert,
 } from 'react-native';
+import { scanDeviceStorage } from '../services/FileScanner';
 
 const CATEGORIES = [
   'Compressed',
@@ -21,28 +22,66 @@ const CATEGORIES = [
   'Download',
 ];
 
-export const HomeScreen = () => {
+export const HomeScreen = ({ navigation }) => {
+  const [isScanning, setIsScanning] = useState(false);
+  const [categorizedData, setCategorizedData] = useState({
+    Compressed: [],
+    Extracted: [],
+    Documents: [],
+    Videos: [],
+    Images: [],
+    Audios: [],
+    APK: [],
+    Download: [],
+  });
+
+  const runFileScan = useCallback(async () => {
+    setIsScanning(true);
+    try {
+      const results = await scanDeviceStorage();
+      setCategorizedData(results);
+    } catch (error) {
+      console.error('Scan failed:', error);
+      Alert.alert('Scan Error', 'Failed to scan device files.');
+    } finally {
+      setIsScanning(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    runFileScan();
+  }, [runFileScan]);
+
   const handleCategoryPress = (categoryName) => {
-    Alert.alert('Category', `Navigating to ${categoryName}`);
-    console.log(`Navigating to ${categoryName}`);
+    const files = categorizedData[categoryName] || [];
+    navigation.navigate('CategoryList', {
+      categoryName,
+      files,
+    });
   };
 
-  const handleActionPress = (actionName) => {
-    Alert.alert('Action', `Triggered: ${actionName}`);
-    console.log(`Triggered: ${actionName}`);
+  const handleCreateZip = () => {
+    Alert.alert('Create Zip', 'Create New Zip functionality will be available in the next phase.');
   };
 
-  const renderCategoryCard = ({ item }) => (
-    <TouchableOpacity
-      style={styles.card}
-      activeOpacity={0.7}
-      onPress={() => handleCategoryPress(item)}
-    >
-      <Text style={styles.cardText} numberOfLines={2}>
-        {item}
-      </Text>
-    </TouchableOpacity>
-  );
+  const renderCategoryCard = ({ item }) => {
+    const count = categorizedData[item] ? categorizedData[item].length : 0;
+
+    return (
+      <TouchableOpacity
+        style={styles.card}
+        activeOpacity={0.7}
+        onPress={() => handleCategoryPress(item)}
+      >
+        <Text style={styles.cardTitle} numberOfLines={1}>
+          {item}
+        </Text>
+        <Text style={styles.cardCount}>
+          {isScanning ? '...' : count}
+        </Text>
+      </TouchableOpacity>
+    );
+  };
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -51,6 +90,9 @@ export const HomeScreen = () => {
         {/* Header */}
         <View style={styles.headerSection}>
           <Text style={styles.headerTitle}>Categories</Text>
+          {isScanning && (
+            <Text style={styles.scanningText}>Scanning device...</Text>
+          )}
         </View>
 
         {/* 4x2 Category Grid */}
@@ -69,17 +111,20 @@ export const HomeScreen = () => {
           <Text style={styles.sectionTitle}>Quick Actions</Text>
 
           <TouchableOpacity
-            style={styles.actionButton}
+            style={[styles.actionButton, isScanning && styles.buttonDisabled]}
             activeOpacity={0.7}
-            onPress={() => handleActionPress('Smart Scan Zips')}
+            disabled={isScanning}
+            onPress={runFileScan}
           >
-            <Text style={styles.actionButtonText}>Smart Scan Zips</Text>
+            <Text style={styles.actionButtonText}>
+              {isScanning ? 'Scanning In Progress...' : 'Smart Scan Zips'}
+            </Text>
           </TouchableOpacity>
 
           <TouchableOpacity
             style={styles.actionButton}
             activeOpacity={0.7}
-            onPress={() => handleActionPress('Create New Zip')}
+            onPress={handleCreateZip}
           >
             <Text style={styles.actionButtonText}>Create New Zip</Text>
           </TouchableOpacity>
@@ -101,11 +146,19 @@ const styles = StyleSheet.create({
   },
   headerSection: {
     marginBottom: 16,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
   },
   headerTitle: {
     fontSize: 22,
     fontWeight: 'bold',
     color: '#000000',
+  },
+  scanningText: {
+    fontSize: 12,
+    color: '#000000',
+    fontStyle: 'italic',
   },
   gridContainer: {
     paddingBottom: 8,
@@ -123,11 +176,18 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFFFFF',
     justifyContent: 'center',
     alignItems: 'center',
-    padding: 6,
+    padding: 4,
   },
-  cardText: {
+  cardTitle: {
     fontSize: 11,
     fontWeight: '600',
+    color: '#000000',
+    textAlign: 'center',
+    marginBottom: 4,
+  },
+  cardCount: {
+    fontSize: 13,
+    fontWeight: 'bold',
     color: '#000000',
     textAlign: 'center',
   },
@@ -149,6 +209,9 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 12,
+  },
+  buttonDisabled: {
+    opacity: 0.5,
   },
   actionButtonText: {
     fontSize: 16,
