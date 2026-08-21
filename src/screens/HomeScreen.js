@@ -8,7 +8,9 @@ import {
   SafeAreaView,
   StatusBar,
   Alert,
+  DeviceEventEmitter,
 } from 'react-native';
+import { useFocusEffect } from '@react-navigation/native';
 import { scanDeviceStorage } from '../services/FileScanner';
 
 const CATEGORIES = [
@@ -48,8 +50,38 @@ export const HomeScreen = ({ navigation }) => {
     }
   }, []);
 
+  // Run on mount
   useEffect(() => {
     runFileScan();
+  }, [runFileScan]);
+
+  // Re-run scan whenever HomeScreen comes into focus
+  useFocusEffect(
+    useCallback(() => {
+      runFileScan();
+    }, [runFileScan])
+  );
+
+  // Listen for real-time extraction & creation events
+  useEffect(() => {
+    const extractionSub = DeviceEventEmitter.addListener(
+      'EXTRACTION_SUCCESS',
+      () => {
+        runFileScan();
+      }
+    );
+
+    const zipCreatedSub = DeviceEventEmitter.addListener(
+      'ZIP_CREATED',
+      () => {
+        runFileScan();
+      }
+    );
+
+    return () => {
+      extractionSub.remove();
+      zipCreatedSub.remove();
+    };
   }, [runFileScan]);
 
   const handleCategoryPress = (categoryName) => {
@@ -61,7 +93,7 @@ export const HomeScreen = ({ navigation }) => {
   };
 
   const handleCreateZip = () => {
-    Alert.alert('Create Zip', 'Create New Zip functionality will be available in the next phase.');
+    navigation.navigate('CreateZip');
   };
 
   const renderCategoryCard = ({ item }) => {

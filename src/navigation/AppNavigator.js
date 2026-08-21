@@ -5,6 +5,7 @@ import PermissionsScreen from '../screens/PermissionsScreen';
 import OnboardingScreen from '../screens/OnboardingScreen';
 import HomeScreen from '../screens/HomeScreen';
 import CategoryListScreen from '../screens/CategoryListScreen';
+import CreateZipScreen from '../screens/CreateZipScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -39,6 +40,11 @@ export const AppNavigator = () => {
       <Stack.Screen
         name="CategoryList"
         component={CategoryListScreen}
+        options={{ animation: 'slide_from_right' }}
+      />
+      <Stack.Screen
+        name="CreateZip"
+        component={CreateZipScreen}
         options={{ animation: 'slide_from_right' }}
       />
     </Stack.Navigator>

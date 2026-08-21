@@ -1,12 +1,38 @@
 import RNFS from 'react-native-fs';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const EXTENSION_CATEGORIES = {
-  Compressed: ['.zip', '.rar', '.7z', '.tar', '.gz'],
-  Documents: ['.docx', '.xlsx', '.pptx', '.pdf', '.txt'],
-  Images: ['.png', '.jpg', '.jpeg'],
-  Videos: ['.mp4'],
-  Audios: ['.mp3'],
-  APK: ['.apk'],
+  Compressed: ['.zip', '.rar', '.7z'],
+  Documents: [
+    '.docx',
+    '.doc',
+    '.xlsx',
+    '.xls',
+    '.pptx',
+    '.ppt',
+    '.pdf',
+    '.txt',
+    '.csv',
+    '.rtf',
+    '.odt',
+    '.epub',
+  ],
+  Images: ['.png', '.jpg', '.jpeg', '.webp', '.gif', '.bmp', '.svg', '.heic', '.heif'],
+  Videos: ['.mp4', '.mkv', '.avi', '.mov', '.3gp', '.webm', '.flv', '.wmv', '.m4v', '.ts'],
+  Audios: [
+    '.mp3',
+    '.m4a',
+    '.wav',
+    '.ogg',
+    '.opus',
+    '.aac',
+    '.flac',
+    '.amr',
+    '.wma',
+    '.mid',
+    '.midi',
+  ],
+  APK: ['.apk', '.xapk', '.apks'],
 };
 
 // Folders to skip to avoid permission crashes and slow scans
@@ -46,12 +72,59 @@ export const scanDeviceStorage = async (
     Download: [],
   };
 
+  // Load known zip archive names and tracked extraction locations from history
+  let knownZipBaseNames = [];
+  try {
+    const historyJson = await AsyncStorage.getItem('@recent_zips');
+    if (historyJson) {
+      const history = JSON.parse(historyJson);
+      knownZipBaseNames = history.map((item) => {
+        const cleanName = (item.name || '').replace(/\.[^/.]+$/, '').toLowerCase();
+        return cleanName;
+      }).filter(Boolean);
+    }
+  } catch (e) {
+    // Ignore storage read error
+  }
+
   const isIgnoredDir = (dirName, dirPath) => {
     if (!dirName || dirName.startsWith('.')) return true;
     if (IGNORED_FOLDER_NAMES.has(dirName)) return true;
     if (dirPath && (dirPath.includes('/Android/data') || dirPath.includes('/Android/obb'))) {
       return true;
     }
+    return false;
+  };
+
+  const isExtractedPath = (filePath, normalizedPath) => {
+    // 1. Keyword check in path or folder name
+    const extractionKeywords = [
+      '/extracted',
+      '/extract',
+      '/unzip',
+      '/unzipped',
+      '/unrar',
+      '/decompressed',
+      '/zipapp',
+      '_extracted',
+      '-extracted',
+      '_unzipped',
+      '-unzipped',
+    ];
+
+    for (const keyword of extractionKeywords) {
+      if (normalizedPath.includes(keyword)) {
+        return true;
+      }
+    }
+
+    // 2. Check if file is inside a folder that matches any created zip name
+    for (const baseName of knownZipBaseNames) {
+      if (baseName.length > 2 && normalizedPath.includes(`/${baseName}/`)) {
+        return true;
+      }
+    }
+
     return false;
   };
 
@@ -75,12 +148,17 @@ export const scanDeviceStorage = async (
               name: item.name,
               path: item.path,
               size: item.size || 0,
-              mtime: item.mtime || null,
+              mtime: item.mtime
+                ? item.mtime instanceof Date
+                  ? item.mtime.toISOString()
+                  : String(item.mtime)
+                : null,
               extension: ext,
             };
 
-            // Download category (all files within Download directory)
             const normalizedPath = item.path.toLowerCase();
+
+            // Download category (all files within Download directory)
             if (
               normalizedPath.includes('/download/') ||
               normalizedPath.includes('/downloads/')
@@ -88,11 +166,8 @@ export const scanDeviceStorage = async (
               categorizedFiles.Download.push(fileInfo);
             }
 
-            // Extracted category
-            if (
-              normalizedPath.includes('/extracted/') ||
-              normalizedPath.includes('/zipapp/extracted')
-            ) {
+            // Extracted category (scans anywhere across internal storage)
+            if (isExtractedPath(item.path, normalizedPath)) {
               categorizedFiles.Extracted.push(fileInfo);
             }
 
