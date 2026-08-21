@@ -13,13 +13,28 @@ export const AppNavigator = () => {
       initialRouteName="Splash"
       screenOptions={{
         headerShown: false,
-        animation: 'fade',
       }}
     >
-      <Stack.Screen name="Splash" component={SplashScreen} />
-      <Stack.Screen name="Permissions" component={PermissionsScreen} />
-      <Stack.Screen name="Onboarding" component={OnboardingScreen} />
-      <Stack.Screen name="Home" component={HomeScreen} />
+      <Stack.Screen
+        name="Splash"
+        component={SplashScreen}
+        options={{ animation: 'slide_from_right' }}
+      />
+      <Stack.Screen
+        name="Permissions"
+        component={PermissionsScreen}
+        options={{ animation: 'fade', animationDuration: 400 }}
+      />
+      <Stack.Screen
+        name="Onboarding"
+        component={OnboardingScreen}
+        options={{ animation: 'fade', animationDuration: 500 }}
+      />
+      <Stack.Screen
+        name="Home"
+        component={HomeScreen}
+        options={{ animation: 'fade', animationDuration: 400 }}
+      />
     </Stack.Navigator>
   );
 };

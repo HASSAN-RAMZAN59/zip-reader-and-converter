@@ -1,11 +1,12 @@
 import React, { useEffect, useState, useCallback, useRef } from 'react';
-import { View, Text, Button, StyleSheet, AppState } from 'react-native';
+import { View, Text, Button, StyleSheet, AppState, Animated } from 'react-native';
 import { permissionsService } from '../services/permissionsService';
 import { storageService } from '../services/storageService';
 
 export const PermissionsScreen = ({ navigation }) => {
   const [checking, setChecking] = useState(false);
   const isNavigatingRef = useRef(false);
+  const contentFadeAnim = useRef(new Animated.Value(1)).current;
 
   const checkAndNavigate = useCallback(async () => {
     if (isNavigatingRef.current) return;
@@ -14,23 +15,37 @@ export const PermissionsScreen = ({ navigation }) => {
       const isGranted = await permissionsService.checkStoragePermission();
       if (isGranted) {
         isNavigatingRef.current = true;
+        // Keep content hidden to eliminate flicker completely
+        contentFadeAnim.setValue(0);
         const hasLaunched = await storageService.getHasLaunched();
         if (hasLaunched) {
           navigation.replace('Home');
         } else {
           navigation.replace('Onboarding');
         }
+      } else {
+        // If user came back without granting, gently reveal UI
+        Animated.timing(contentFadeAnim, {
+          toValue: 1,
+          duration: 300,
+          useNativeDriver: true,
+        }).start();
       }
     } catch (error) {
       console.error('Error checking permission in PermissionsScreen:', error);
+      Animated.timing(contentFadeAnim, {
+        toValue: 1,
+        duration: 300,
+        useNativeDriver: true,
+      }).start();
     }
-  }, [navigation]);
+  }, [navigation, contentFadeAnim]);
 
   useEffect(() => {
     // Initial check on mount
     checkAndNavigate();
 
-    // Listen for AppState changes in real-time (e.g. when user returns from Settings or OS dialog)
+    // Listen for AppState changes in real-time (when user returns from Settings)
     const subscription = AppState.addEventListener('change', (nextAppState) => {
       if (nextAppState === 'active') {
         checkAndNavigate();
@@ -47,37 +62,55 @@ export const PermissionsScreen = ({ navigation }) => {
     setChecking(true);
 
     try {
+      // Fade out the UI smoothly before launching Settings
+      Animated.timing(contentFadeAnim, {
+        toValue: 0,
+        duration: 200,
+        useNativeDriver: true,
+      }).start();
+
       const isGranted = await permissionsService.requestStoragePermission();
       if (isGranted) {
         await checkAndNavigate();
       }
     } catch (error) {
       console.error('Error handling grant permission:', error);
+      Animated.timing(contentFadeAnim, {
+        toValue: 1,
+        duration: 300,
+        useNativeDriver: true,
+      }).start();
     } finally {
       setChecking(false);
     }
   };
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Storage Access Required</Text>
-      <Text style={styles.description}>
-        Zip App requires All Files Access to scan, compress, and extract files across your device.
-      </Text>
+    <View style={styles.outerContainer}>
+      <Animated.View style={[styles.container, { opacity: contentFadeAnim }]}>
+        <Text style={styles.title}>Storage Access Required</Text>
+        <Text style={styles.description}>
+          Zip App requires All Files Access to scan, compress, and extract files across your device.
+        </Text>
 
-      <View style={styles.buttonContainer}>
-        <Button
-          title={checking ? 'Checking...' : 'Grant Permission'}
-          onPress={handleGrantPermission}
-          disabled={checking}
-          color="#000000"
-        />
-      </View>
+        <View style={styles.buttonContainer}>
+          <Button
+            title={checking ? 'Checking...' : 'Grant Permission'}
+            onPress={handleGrantPermission}
+            disabled={checking}
+            color="#000000"
+          />
+        </View>
+      </Animated.View>
     </View>
   );
 };
 
 const styles = StyleSheet.create({
+  outerContainer: {
+    flex: 1,
+    backgroundColor: '#FFFFFF',
+  },
   container: {
     flex: 1,
     backgroundColor: '#FFFFFF',
@@ -106,4 +139,6 @@ const styles = StyleSheet.create({
 });
 
 export default PermissionsScreen;
+
+
 
