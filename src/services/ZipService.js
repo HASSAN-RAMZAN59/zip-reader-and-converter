@@ -68,7 +68,7 @@ export const createZipArchive = async (files, archiveName, password = '') => {
     // Copy selected files into the staging folder
     for (let i = 0; i < files.length; i++) {
       const file = files[i];
-      const sourceUri = file.fileCopyUri || file.uri;
+      const sourceUri = file.path || file.fileCopyUri || file.uri;
       const destinationPath = `${stagingDir}/${file.name || `file_${i}`}`;
 
       if (sourceUri.startsWith('content://')) {

@@ -16,11 +16,34 @@ import {
   NativeModules,
 } from 'react-native';
 import DocumentPicker from 'react-native-document-picker';
-import { extractZipArchive, checkArchiveEncrypted } from '../services/ZipService';
+import {
+  extractZipArchive,
+  checkArchiveEncrypted,
+  createZipArchive,
+} from '../services/ZipService';
 
 const COMPRESSED_EXTENSIONS = ['.zip', '.rar', '.7z', '.tar', '.gz'];
-const IMAGE_EXTENSIONS = ['.png', '.jpg', '.jpeg', '.webp', '.heic', '.heif', '.gif', '.bmp', '.svg'];
-const VIDEO_EXTENSIONS = ['.mp4', '.mkv', '.avi', '.mov', '.3gp', '.webm', '.flv', '.wmv'];
+const IMAGE_EXTENSIONS = [
+  '.png',
+  '.jpg',
+  '.jpeg',
+  '.webp',
+  '.heic',
+  '.heif',
+  '.gif',
+  '.bmp',
+  '.svg',
+];
+const VIDEO_EXTENSIONS = [
+  '.mp4',
+  '.mkv',
+  '.avi',
+  '.mov',
+  '.3gp',
+  '.webm',
+  '.flv',
+  '.wmv',
+];
 
 const getExtension = (fileName = '') => {
   if (!fileName || typeof fileName !== 'string') return '';
@@ -44,7 +67,11 @@ const VideoThumbnail = React.memo(({ path }) => {
 
   useEffect(() => {
     let isMounted = true;
-    if (NativeModules.ManageStorageModule && NativeModules.ManageStorageModule.getVideoThumbnail && path) {
+    if (
+      NativeModules.ManageStorageModule &&
+      NativeModules.ManageStorageModule.getVideoThumbnail &&
+      path
+    ) {
       NativeModules.ManageStorageModule.getVideoThumbnail(path)
         .then((uri) => {
           if (isMounted && uri) {
@@ -88,6 +115,16 @@ export const CategoryListScreen = ({ route, navigation }) => {
     ? files.filter((f) => f && typeof f === 'object' && f.name)
     : [];
 
+  // Multi-Selection State (for Long-Press & Batch Zip Compression)
+  const [isSelectionMode, setIsSelectionMode] = useState(false);
+  const [selectedPaths, setSelectedPaths] = useState(new Set());
+
+  // Compression Modal State
+  const [compressModalVisible, setCompressModalVisible] = useState(false);
+  const [compressArchiveName, setCompressArchiveName] = useState('');
+  const [compressPassword, setCompressPassword] = useState('');
+  const [isCompressing, setIsCompressing] = useState(false);
+
   // Extraction Modal State
   const [extractModalVisible, setExtractModalVisible] = useState(false);
   const [selectedArchive, setSelectedArchive] = useState(null);
@@ -120,8 +157,117 @@ export const CategoryListScreen = ({ route, navigation }) => {
     return COMPRESSED_EXTENSIONS.includes(ext);
   };
 
+  // --- Multi-Selection & Long Press Logic ---
+  const handleItemLongPress = (item) => {
+    if (!item || !item.path) return;
+
+    if (!isSelectionMode) {
+      setIsSelectionMode(true);
+      const newSet = new Set();
+      newSet.add(item.path);
+      setSelectedPaths(newSet);
+    } else {
+      toggleItemSelection(item.path);
+    }
+  };
+
+  const toggleItemSelection = (path) => {
+    setSelectedPaths((prev) => {
+      const next = new Set(prev);
+      if (next.has(path)) {
+        next.delete(path);
+      } else {
+        next.add(path);
+      }
+      return next;
+    });
+  };
+
+  const handleSelectAll = () => {
+    if (selectedPaths.size === validFiles.length) {
+      setSelectedPaths(new Set());
+    } else {
+      const allSet = new Set(validFiles.map((f) => f.path).filter(Boolean));
+      setSelectedPaths(allSet);
+    }
+  };
+
+  const handleExitSelectionMode = () => {
+    setIsSelectionMode(false);
+    setSelectedPaths(new Set());
+  };
+
+  const handleOpenCompressModal = () => {
+    if (selectedPaths.size === 0) {
+      Alert.alert(
+        'No Files Selected',
+        'Please select at least 1 file to compress.'
+      );
+      return;
+    }
+    const defaultName = `${categoryName}_Archive_${Date.now()
+      .toString()
+      .slice(-4)}`;
+    setCompressArchiveName(defaultName);
+    setCompressPassword('');
+    setCompressModalVisible(true);
+  };
+
+  const handlePerformCompression = async () => {
+    const trimmedName = compressArchiveName.trim();
+    if (!trimmedName) {
+      Alert.alert('Archive Name Required', 'Please enter a valid archive name.');
+      return;
+    }
+
+    const selectedFileObjects = validFiles.filter((f) =>
+      selectedPaths.has(f.path)
+    );
+
+    if (selectedFileObjects.length === 0) {
+      Alert.alert('Error', 'No files selected to compress.');
+      return;
+    }
+
+    setIsCompressing(true);
+
+    try {
+      const result = await createZipArchive(
+        selectedFileObjects,
+        trimmedName,
+        compressPassword
+      );
+
+      DeviceEventEmitter.emit('ZIP_CREATED', result);
+
+      setCompressModalVisible(false);
+      setIsSelectionMode(false);
+      setSelectedPaths(new Set());
+
+      Alert.alert(
+        'Zip Created Successfully!',
+        `Saved to: ${result.path}\n\nArchive: ${result.name}`
+      );
+    } catch (error) {
+      console.error('Compression failed:', error);
+      Alert.alert(
+        'Compression Error',
+        error.message || 'Failed to create zip archive.'
+      );
+    } finally {
+      setIsCompressing(false);
+    }
+  };
+
+  // --- Normal Tap Actions ---
   const handleFilePress = async (item) => {
     if (!item) return;
+
+    // If currently in selection mode, tapping toggles selection
+    if (isSelectionMode) {
+      toggleItemSelection(item.path);
+      return;
+    }
 
     if (isArchiveFile(item.name) || categoryName === 'Compressed') {
       setSelectedArchive(item);
@@ -282,16 +428,35 @@ export const CategoryListScreen = ({ route, navigation }) => {
   const renderFileItem = ({ item, index }) => {
     if (!item) return null;
 
-    // Strict category checks so mixed folders like Downloads/Extracted remain fast and crash-free
     const isImg = categoryName === 'Images';
     const isVid = categoryName === 'Videos';
+    const isSelected = selectedPaths.has(item.path);
 
     return (
       <TouchableOpacity
-        style={styles.fileItem}
+        style={[
+          styles.fileItem,
+          isSelected && styles.fileItemSelected,
+        ]}
         activeOpacity={0.7}
         onPress={() => handleFilePress(item)}
+        onLongPress={() => handleItemLongPress(item)}
+        delayLongPress={300}
       >
+        {/* Selection Checkbox Indicator (Visible in selection mode) */}
+        {isSelectionMode && (
+          <View
+            style={[
+              styles.checkboxBox,
+              isSelected && styles.checkboxBoxSelected,
+            ]}
+          >
+            {isSelected ? (
+              <Text style={styles.checkboxCheckText}>✓</Text>
+            ) : null}
+          </View>
+        )}
+
         {/* Render Image Thumbnail (Only in Images category) */}
         {isImg && item.path ? (
           <Image
@@ -303,9 +468,7 @@ export const CategoryListScreen = ({ route, navigation }) => {
         ) : null}
 
         {/* Render Video Thumbnail (Only in Videos category) */}
-        {isVid && item.path ? (
-          <VideoThumbnail path={item.path} />
-        ) : null}
+        {isVid && item.path ? <VideoThumbnail path={item.path} /> : null}
 
         {/* File Info */}
         <View style={styles.fileDetails}>
@@ -324,16 +487,44 @@ export const CategoryListScreen = ({ route, navigation }) => {
       <View style={styles.container}>
         {/* Header */}
         <View style={styles.header}>
-          <TouchableOpacity
-            style={styles.backButton}
-            activeOpacity={0.7}
-            onPress={() => navigation.goBack()}
-          >
-            <Text style={styles.backButtonText}>{'< Back'}</Text>
-          </TouchableOpacity>
-          <Text style={styles.headerTitle} numberOfLines={1}>
-            {categoryName} ({validFiles.length})
-          </Text>
+          {isSelectionMode ? (
+            <>
+              <TouchableOpacity
+                style={styles.backButton}
+                activeOpacity={0.7}
+                onPress={handleExitSelectionMode}
+              >
+                <Text style={styles.backButtonText}>Cancel</Text>
+              </TouchableOpacity>
+              <Text style={styles.headerTitle} numberOfLines={1}>
+                {selectedPaths.size} Selected
+              </Text>
+              <TouchableOpacity
+                style={styles.actionHeaderButton}
+                activeOpacity={0.7}
+                onPress={handleSelectAll}
+              >
+                <Text style={styles.actionHeaderButtonText}>
+                  {selectedPaths.size === validFiles.length
+                    ? 'Deselect All'
+                    : 'Select All'}
+                </Text>
+              </TouchableOpacity>
+            </>
+          ) : (
+            <>
+              <TouchableOpacity
+                style={styles.backButton}
+                activeOpacity={0.7}
+                onPress={() => navigation.goBack()}
+              >
+                <Text style={styles.backButtonText}>{'< Back'}</Text>
+              </TouchableOpacity>
+              <Text style={styles.headerTitle} numberOfLines={1}>
+                {categoryName} ({validFiles.length})
+              </Text>
+            </>
+          )}
         </View>
 
         {/* File List */}
@@ -343,7 +534,10 @@ export const CategoryListScreen = ({ route, navigation }) => {
             item?.path ? `${item.path}-${index}` : `file-${index}`
           }
           renderItem={renderFileItem}
-          contentContainerStyle={styles.listContent}
+          contentContainerStyle={[
+            styles.listContent,
+            isSelectionMode && styles.listContentWithBottomBar,
+          ]}
           initialNumToRender={15}
           maxToRenderPerBatch={20}
           windowSize={7}
@@ -355,7 +549,99 @@ export const CategoryListScreen = ({ route, navigation }) => {
           }
         />
 
-        {/* 1. Extraction Action Modal */}
+        {/* Bottom Multi-Selection Action Bar */}
+        {isSelectionMode && (
+          <View style={styles.selectionBottomBar}>
+            <TouchableOpacity
+              style={[
+                styles.compressActionButton,
+                selectedPaths.size === 0 && styles.disabledButton,
+              ]}
+              activeOpacity={0.7}
+              onPress={handleOpenCompressModal}
+              disabled={selectedPaths.size === 0}
+            >
+              <Text style={styles.compressActionButtonText}>
+                Compress to Zip ({selectedPaths.size})
+              </Text>
+            </TouchableOpacity>
+          </View>
+        )}
+
+        {/* 1. Batch Compression Modal (Triggered by Long-Press & Multi-Select) */}
+        <Modal
+          visible={compressModalVisible}
+          transparent={true}
+          animationType="fade"
+          onRequestClose={() => {
+            if (!isCompressing) setCompressModalVisible(false);
+          }}
+        >
+          <View style={styles.modalOverlay}>
+            <View style={styles.modalContent}>
+              <Text style={styles.modalTitle}>Compress Files</Text>
+              <Text style={styles.modalSubtitle}>
+                {selectedPaths.size} file(s) selected
+              </Text>
+
+              <Text style={styles.inputLabel}>Archive Name (.zip)</Text>
+              <TextInput
+                style={styles.passwordInput}
+                placeholder="Enter archive name"
+                placeholderTextColor="#888888"
+                value={compressArchiveName}
+                onChangeText={setCompressArchiveName}
+                editable={!isCompressing}
+                autoCapitalize="none"
+              />
+
+              <Text style={styles.inputLabel}>Optional Password (AES-256)</Text>
+              <TextInput
+                style={styles.passwordInput}
+                placeholder="Leave blank for no password"
+                placeholderTextColor="#888888"
+                value={compressPassword}
+                onChangeText={setCompressPassword}
+                editable={!isCompressing}
+                secureTextEntry={false}
+                autoCapitalize="none"
+              />
+
+              {isCompressing && (
+                <View style={styles.loadingContainer}>
+                  <ActivityIndicator size="small" color="#000000" />
+                  <Text style={styles.loadingText}>Compressing into Zip...</Text>
+                </View>
+              )}
+
+              <TouchableOpacity
+                style={[
+                  styles.modalButton,
+                  isCompressing && styles.disabledButton,
+                ]}
+                activeOpacity={0.7}
+                onPress={handlePerformCompression}
+                disabled={isCompressing}
+              >
+                <Text style={styles.modalButtonText}>Create Zip Archive</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={[
+                  styles.cancelButton,
+                  isCompressing && styles.disabledButton,
+                ]}
+                activeOpacity={0.7}
+                onPress={() => setCompressModalVisible(false)}
+                disabled={isCompressing}
+              >
+                <Text style={styles.cancelButtonText}>Cancel</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </Modal>
+
+        {/* 2. Extraction Action Modal */}
         <Modal
           visible={extractModalVisible}
           transparent={true}
@@ -427,7 +713,7 @@ export const CategoryListScreen = ({ route, navigation }) => {
           </View>
         </Modal>
 
-        {/* 2. Image Full Preview Modal */}
+        {/* 3. Image Full Preview Modal */}
         <Modal
           visible={imageModalVisible}
           transparent={true}
@@ -478,7 +764,7 @@ export const CategoryListScreen = ({ route, navigation }) => {
           </View>
         </Modal>
 
-        {/* 3. File Detail & System Opener Modal (Videos, Audios, Docs, APK) */}
+        {/* 4. File Detail & System Opener Modal (Videos, Audios, Docs, APK) */}
         <Modal
           visible={detailModalVisible}
           transparent={true}
@@ -560,14 +846,29 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: '#000000',
   },
+  actionHeaderButton: {
+    borderWidth: 1,
+    borderColor: '#000000',
+    backgroundColor: '#FFFFFF',
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+  },
+  actionHeaderButtonText: {
+    fontSize: 12,
+    fontWeight: 'bold',
+    color: '#000000',
+  },
   headerTitle: {
-    fontSize: 20,
+    fontSize: 18,
     fontWeight: 'bold',
     color: '#000000',
     flex: 1,
   },
   listContent: {
     paddingBottom: 24,
+  },
+  listContentWithBottomBar: {
+    paddingBottom: 80,
   },
   fileItem: {
     borderWidth: 1,
@@ -577,6 +878,29 @@ const styles = StyleSheet.create({
     marginBottom: 8,
     flexDirection: 'row',
     alignItems: 'center',
+  },
+  fileItemSelected: {
+    backgroundColor: '#F2F2F2',
+    borderWidth: 2,
+    borderColor: '#000000',
+  },
+  checkboxBox: {
+    width: 22,
+    height: 22,
+    borderWidth: 2,
+    borderColor: '#000000',
+    backgroundColor: '#FFFFFF',
+    marginRight: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  checkboxBoxSelected: {
+    backgroundColor: '#000000',
+  },
+  checkboxCheckText: {
+    color: '#FFFFFF',
+    fontSize: 13,
+    fontWeight: 'bold',
   },
   thumbnailContainer: {
     position: 'relative',
@@ -645,6 +969,30 @@ const styles = StyleSheet.create({
   emptyText: {
     fontSize: 14,
     color: '#000000',
+  },
+  selectionBottomBar: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    backgroundColor: '#FFFFFF',
+    borderTopWidth: 2,
+    borderTopColor: '#000000',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+  },
+  compressActionButton: {
+    backgroundColor: '#000000',
+    borderWidth: 1,
+    borderColor: '#000000',
+    paddingVertical: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  compressActionButtonText: {
+    color: '#FFFFFF',
+    fontSize: 15,
+    fontWeight: 'bold',
   },
   modalOverlay: {
     flex: 1,
