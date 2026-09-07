@@ -6,23 +6,34 @@ import {
   StyleSheet,
   FlatList,
   Dimensions,
+  SafeAreaView,
+  StatusBar,
 } from 'react-native';
 import { storageService } from '../services/storageService';
+
+// Slide 1 SVG Assets
+import ObjectsBg from '../assets/boardings/1/OBJECTS.svg';
+import FolderWithZips from '../assets/boardings/1/Icon (1).svg';
+import StackedDocs from '../assets/boardings/1/3d-render-two-stacked-documents-one-yellow-one-purple-showing-lines-text 1.svg';
+import GalleryIcon from '../assets/boardings/1/3d-realistic-gallery-icon-vector-illustration 1.svg';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
 const ONBOARDING_SLIDES = [
   {
     id: '1',
-    text: 'Compress your files into zip archives quickly and efficiently.',
+    title: 'Create ZIP Files',
+    subtitle: 'Compress multiple files into a single ZIP archive easily.',
   },
   {
     id: '2',
-    text: 'Easily unzip and extract files right on your device anytime.',
+    title: 'Extract Anywhere',
+    subtitle: 'Easily unzip and extract files right on your device anytime.',
   },
   {
     id: '3',
-    text: 'Manage and share your archives seamlessly with one tap.',
+    title: 'Secure & Share',
+    subtitle: 'Protect files with passwords and share archives seamlessly.',
   },
 ];
 
@@ -33,7 +44,9 @@ export const OnboardingScreen = ({ navigation }) => {
   const handleScroll = (event) => {
     const offsetX = event.nativeEvent.contentOffset.x;
     const index = Math.round(offsetX / SCREEN_WIDTH);
-    setCurrentIndex(index);
+    if (index >= 0 && index < ONBOARDING_SLIDES.length) {
+      setCurrentIndex(index);
+    }
   };
 
   const handleNext = () => {
@@ -43,16 +56,8 @@ export const OnboardingScreen = ({ navigation }) => {
         animated: true,
       });
       setCurrentIndex(currentIndex + 1);
-    }
-  };
-
-  const handleBack = () => {
-    if (currentIndex > 0) {
-      flatListRef.current?.scrollToIndex({
-        index: currentIndex - 1,
-        animated: true,
-      });
-      setCurrentIndex(currentIndex - 1);
+    } else {
+      handleGetStarted();
     }
   };
 
@@ -66,16 +71,65 @@ export const OnboardingScreen = ({ navigation }) => {
     }
   };
 
+  const renderSlideIllustration = (id) => {
+    return (
+      <View style={styles.illustrationContainer}>
+        {/* Background Foliage, Clouds & Objects */}
+        <ObjectsBg
+          width={SCREEN_WIDTH}
+          height={320}
+          preserveAspectRatio="xMidYMid meet"
+        />
+
+        {/* 3D Gallery Icon (Top Left above folder) */}
+        <View style={styles.floatingGallery}>
+          <GalleryIcon width={72} height={72} />
+        </View>
+
+        {/* 3D Stacked Documents (Top Right above folder) */}
+        <View style={styles.floatingDocs}>
+          <StackedDocs width={80} height={80} />
+        </View>
+
+        {/* Central Green Folder with Zipper & PDF/PNG files (Foreground) */}
+        <View style={styles.mainFolder}>
+          <FolderWithZips width={248} height={253} />
+        </View>
+      </View>
+    );
+  };
+
   const renderSlide = ({ item }) => (
     <View style={styles.slide}>
-      <Text style={styles.text}>{item.text}</Text>
+      {/* 3D Graphic Illustration */}
+      {renderSlideIllustration(item.id)}
+
+      {/* Slide Text Content */}
+      <View style={styles.textContent}>
+        <Text style={styles.title}>{item.title}</Text>
+        <Text style={styles.subtitle}>{item.subtitle}</Text>
+      </View>
     </View>
   );
 
   const isLastSlide = currentIndex === ONBOARDING_SLIDES.length - 1;
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
+      <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
+
+      {/* Top Header Bar with Skip Button */}
+      <View style={styles.topBar}>
+        <TouchableOpacity
+          style={styles.skipButton}
+          onPress={handleGetStarted}
+          activeOpacity={0.8}
+        >
+          <Text style={styles.skipButtonText}>Skip</Text>
+        </TouchableOpacity>
+      </View>
+
+      {/* Carousel Slides */}
       <FlatList
         ref={flatListRef}
         data={ONBOARDING_SLIDES}
@@ -88,34 +142,35 @@ export const OnboardingScreen = ({ navigation }) => {
         style={styles.flatList}
       />
 
+      {/* Bottom Actions: Next Button & Pagination Dots */}
       <View style={styles.footer}>
-        <Text style={styles.indicatorText}>
-          {currentIndex + 1} / {ONBOARDING_SLIDES.length}
-        </Text>
+        <TouchableOpacity
+          style={styles.nextButton}
+          onPress={handleNext}
+          activeOpacity={0.85}
+        >
+          <Text style={styles.nextButtonText}>
+            {isLastSlide ? 'Get Started' : 'Next'}
+          </Text>
+        </TouchableOpacity>
 
-        <View style={styles.buttonRow}>
-          {currentIndex > 0 ? (
-            <TouchableOpacity style={styles.navButtonSecondary} onPress={handleBack} activeOpacity={0.7}>
-              <Text style={styles.navButtonSecondaryText}>Back</Text>
-            </TouchableOpacity>
-          ) : (
-            <View />
-          )}
-
-          <View style={styles.flexSpacer} />
-
-          {!isLastSlide ? (
-            <TouchableOpacity style={styles.navButtonPrimary} onPress={handleNext} activeOpacity={0.7}>
-              <Text style={styles.navButtonPrimaryText}>Next</Text>
-            </TouchableOpacity>
-          ) : (
-            <TouchableOpacity style={styles.navButtonPrimary} onPress={handleGetStarted} activeOpacity={0.7}>
-              <Text style={styles.navButtonPrimaryText}>Get Started</Text>
-            </TouchableOpacity>
-          )}
+        {/* Pagination Dots */}
+        <View style={styles.paginationRow}>
+          {ONBOARDING_SLIDES.map((_, index) => {
+            const isActive = currentIndex === index;
+            return (
+              <View
+                key={index}
+                style={[
+                  styles.dot,
+                  isActive ? styles.activeDot : styles.inactiveDot,
+                ]}
+              />
+            );
+          })}
         </View>
       </View>
-    </View>
+    </SafeAreaView>
   );
 };
 
@@ -124,61 +179,126 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#FFFFFF',
   },
+  topBar: {
+    width: '100%',
+    alignItems: 'flex-end',
+    paddingHorizontal: 20,
+    paddingTop: 10,
+    zIndex: 10,
+  },
+  skipButton: {
+    backgroundColor: '#44A63B',
+    paddingVertical: 6,
+    paddingHorizontal: 18,
+    borderRadius: 18,
+    shadowColor: '#1B5E20',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.35,
+    shadowRadius: 6,
+    elevation: 4,
+  },
+  skipButtonText: {
+    color: '#FFFFFF',
+    fontSize: 14,
+    fontFamily: 'Poppins-Medium',
+  },
   flatList: {
     flex: 1,
   },
   slide: {
     width: SCREEN_WIDTH,
-    justifyContent: 'center',
     alignItems: 'center',
-    padding: 32,
+    justifyContent: 'center',
+    paddingTop: 10,
   },
-  text: {
-    color: '#000000',
-    fontSize: 18,
-    fontFamily: 'Poppins-Regular',
+  illustrationContainer: {
+    width: SCREEN_WIDTH,
+    height: 330,
+    alignItems: 'center',
+    justifyContent: 'center',
+    position: 'relative',
+  },
+  floatingGallery: {
+    position: 'absolute',
+    top: 48,
+    left: SCREEN_WIDTH * 0.28,
+    zIndex: 2,
+  },
+  floatingDocs: {
+    position: 'absolute',
+    top: 40,
+    right: SCREEN_WIDTH * 0.25,
+    zIndex: 2,
+  },
+  mainFolder: {
+    position: 'absolute',
+    bottom: 8,
+    alignSelf: 'center',
+    zIndex: 3,
+  },
+  textContent: {
+    alignItems: 'center',
+    paddingHorizontal: 32,
+    marginTop: 24,
+  },
+  title: {
+    fontSize: 24,
+    fontFamily: 'Poppins-Medium',
+    color: '#181E1A',
     textAlign: 'center',
-    lineHeight: 26,
+    marginBottom: 10,
+  },
+  subtitle: {
+    fontSize: 14,
+    fontFamily: 'Poppins-Regular',
+    color: '#65736C',
+    textAlign: 'center',
+    lineHeight: 22,
+    maxWidth: 270,
   },
   footer: {
-    paddingHorizontal: 24,
-    paddingBottom: 40,
     alignItems: 'center',
+    paddingHorizontal: 24,
+    paddingBottom: 24,
   },
-  indicatorText: {
-    color: '#000000',
-    fontSize: 14,
+  nextButton: {
+    width: SCREEN_WIDTH * 0.6,
+    height: 52,
+    backgroundColor: '#4CAF50',
+    borderRadius: 26,
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#2E7D32',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.4,
+    shadowRadius: 8,
+    elevation: 6,
+  },
+  nextButtonText: {
+    color: '#FFFFFF',
+    fontSize: 16,
     fontFamily: 'Poppins-Medium',
-    marginBottom: 16,
   },
-  buttonRow: {
+  paginationRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
-    width: '100%',
+    justifyContent: 'center',
+    marginTop: 18,
+    gap: 8,
   },
-  flexSpacer: {
-    flex: 1,
+  dot: {
+    height: 5,
+    borderRadius: 2.5,
   },
-  navButtonPrimary: {
-    backgroundColor: '#000000',
-    paddingVertical: 10,
-    paddingHorizontal: 20,
-    borderRadius: 6,
+  activeDot: {
+    width: 26,
+    backgroundColor: '#388E3C',
   },
-  navButtonPrimaryText: {
-    color: '#FFFFFF',
-    fontSize: 14,
-    fontFamily: 'Poppins-Medium',
-  },
-  navButtonSecondary: {
-    paddingVertical: 10,
-    paddingHorizontal: 16,
-  },
-  navButtonSecondaryText: {
-    color: '#000000',
-    fontSize: 14,
-    fontFamily: 'Poppins-Medium',
+  inactiveDot: {
+    width: 5,
+    backgroundColor: 'transparent',
+    borderWidth: 1,
+    borderColor: '#4CAF50',
   },
 });
 

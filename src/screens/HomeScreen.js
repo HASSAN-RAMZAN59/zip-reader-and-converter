@@ -115,9 +115,18 @@ export const HomeScreen = ({ navigation }) => {
         {/* Header */}
         <View style={styles.headerSection}>
           <Text style={styles.headerTitle}>Categories</Text>
-          {isScanning && (
-            <Text style={styles.scanningText}>Scanning entire device...</Text>
-          )}
+          <View style={styles.headerRight}>
+            {isScanning && (
+              <Text style={styles.scanningText}>Scanning entire device...</Text>
+            )}
+            <TouchableOpacity
+              style={styles.onboardingButton}
+              onPress={() => navigation.navigate('Onboarding')}
+              activeOpacity={0.7}
+            >
+              <Text style={styles.onboardingButtonText}>Onboarding</Text>
+            </TouchableOpacity>
+          </View>
         </View>
 
         {/* 4x2 Category Grid */}
@@ -180,11 +189,29 @@ const styles = StyleSheet.create({
     fontFamily: 'Poppins-Medium',
     color: '#000000',
   },
+  headerRight: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
   scanningText: {
     fontSize: 12,
     fontFamily: 'Poppins-Regular',
     color: '#000000',
     fontStyle: 'italic',
+    marginRight: 8,
+  },
+  onboardingButton: {
+    borderWidth: 1,
+    borderColor: '#000000',
+    borderRadius: 6,
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    backgroundColor: '#FFFFFF',
+  },
+  onboardingButtonText: {
+    fontSize: 12,
+    fontFamily: 'Poppins-Medium',
+    color: '#000000',
   },
   gridContainer: {
     paddingBottom: 8,
