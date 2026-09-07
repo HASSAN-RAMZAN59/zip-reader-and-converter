@@ -17,6 +17,9 @@ import FolderWithZips from '../assets/boardings/1/Icon (1).svg';
 import StackedDocs from '../assets/boardings/1/3d-render-two-stacked-documents-one-yellow-one-purple-showing-lines-text 1.svg';
 import GalleryIcon from '../assets/boardings/1/3d-realistic-gallery-icon-vector-illustration 1.svg';
 
+// Slide 2 SVG Asset
+import SmartScanIllustration from '../assets/boardings/2/Group 1000007574.svg';
+
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
 const ONBOARDING_SLIDES = [
@@ -27,8 +30,8 @@ const ONBOARDING_SLIDES = [
   },
   {
     id: '2',
-    title: 'Extract Anywhere',
-    subtitle: 'Easily unzip and extract files right on your device anytime.',
+    title: 'Smart Scan Zips',
+    subtitle: 'Quickly scan your device and find all ZIP archives in seconds.',
   },
   {
     id: '3',
@@ -72,6 +75,19 @@ export const OnboardingScreen = ({ navigation }) => {
   };
 
   const renderSlideIllustration = (id) => {
+    if (id === '2') {
+      return (
+        <View style={styles.illustrationContainer}>
+          <SmartScanIllustration
+            width={SCREEN_WIDTH * 0.86}
+            height={325}
+            preserveAspectRatio="xMidYMid meet"
+          />
+        </View>
+      );
+    }
+
+    // Default to Slide 1's composite illustration
     return (
       <View style={styles.illustrationContainer}>
         {/* Background Foliage, Clouds & Objects */}
