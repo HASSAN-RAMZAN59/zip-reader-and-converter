@@ -20,6 +20,11 @@ import GalleryIcon from '../assets/boardings/1/3d-realistic-gallery-icon-vector-
 // Slide 2 SVG Asset
 import SmartScanIllustration from '../assets/boardings/2/Group 1000007574.svg';
 
+// Slide 3 SVG Assets
+import PlantLeft from '../assets/boardings/3/Group 1000007545.svg';
+import MainScreenPhone from '../assets/boardings/3/Main Screen.svg';
+import PlantRight from '../assets/boardings/3/Group 1000007544.svg';
+
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
 const ONBOARDING_SLIDES = [
@@ -35,8 +40,8 @@ const ONBOARDING_SLIDES = [
   },
   {
     id: '3',
-    title: 'Secure & Share',
-    subtitle: 'Protect files with passwords and share archives seamlessly.',
+    title: 'Manage Everything',
+    subtitle: 'Organize, mange and access your files with powerful tools.',
   },
 ];
 
@@ -83,6 +88,33 @@ export const OnboardingScreen = ({ navigation }) => {
             height={325}
             preserveAspectRatio="xMidYMid meet"
           />
+        </View>
+      );
+    }
+
+    if (id === '3') {
+      return (
+        <View style={styles.illustrationContainer}>
+          {/* Green Glow aura behind phone */}
+          <View style={styles.slide3PhoneGlow} />
+
+          {/* Green curved pedestal/ground */}
+          <View style={styles.slide3Ground} />
+
+          {/* Central Main Screen Device */}
+          <View style={styles.slide3MainScreen}>
+            <MainScreenPhone width={321} height={439} preserveAspectRatio="xMidYMid meet" />
+          </View>
+
+          {/* Left Potted Plant (overlaps phone screen from left) */}
+          <View style={styles.slide3PlantLeft}>
+            <PlantLeft width={116} height={191} preserveAspectRatio="xMidYMid meet" />
+          </View>
+
+          {/* Right Potted Plant (overlaps phone screen from right) */}
+          <View style={styles.slide3PlantRight}>
+            <PlantRight width={116} height={191} preserveAspectRatio="xMidYMid meet" />
+          </View>
         </View>
       );
     }
@@ -134,15 +166,17 @@ export const OnboardingScreen = ({ navigation }) => {
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
 
-      {/* Top Header Bar with Skip Button */}
+      {/* Top Header Bar with Skip Button (Hidden on 3rd/last slide) */}
       <View style={styles.topBar}>
-        <TouchableOpacity
-          style={styles.skipButton}
-          onPress={handleGetStarted}
-          activeOpacity={0.8}
-        >
-          <Text style={styles.skipButtonText}>Skip</Text>
-        </TouchableOpacity>
+        {!isLastSlide ? (
+          <TouchableOpacity
+            style={styles.skipButton}
+            onPress={handleGetStarted}
+            activeOpacity={0.8}
+          >
+            <Text style={styles.skipButtonText}>Skip</Text>
+          </TouchableOpacity>
+        ) : null}
       </View>
 
       {/* Carousel Slides */}
@@ -198,8 +232,10 @@ const styles = StyleSheet.create({
   topBar: {
     width: '100%',
     alignItems: 'flex-end',
+    justifyContent: 'center',
     paddingHorizontal: 20,
     paddingTop: 10,
+    minHeight: 44,
     zIndex: 10,
   },
   skipButton: {
@@ -229,7 +265,7 @@ const styles = StyleSheet.create({
   },
   illustrationContainer: {
     width: SCREEN_WIDTH,
-    height: 330,
+    height: 355,
     alignItems: 'center',
     justifyContent: 'center',
     position: 'relative',
@@ -252,10 +288,51 @@ const styles = StyleSheet.create({
     alignSelf: 'center',
     zIndex: 3,
   },
+  slide3PhoneGlow: {
+    position: 'absolute',
+    top: 8,
+    alignSelf: 'center',
+    width: 268,
+    height: 345,
+    borderRadius: 36,
+    backgroundColor: 'rgba(76, 175, 80, 0.28)',
+    shadowColor: '#4CAF50',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.9,
+    shadowRadius: 32,
+    elevation: 10,
+    zIndex: 1,
+  },
+  slide3Ground: {
+    position: 'absolute',
+    bottom: 0,
+    width: SCREEN_WIDTH,
+    height: 36,
+    backgroundColor: '#47A850',
+    borderTopLeftRadius: SCREEN_WIDTH * 0.5,
+    borderTopRightRadius: SCREEN_WIDTH * 0.5,
+    zIndex: 2,
+  },
+  slide3MainScreen: {
+    alignSelf: 'center',
+    zIndex: 3,
+  },
+  slide3PlantLeft: {
+    position: 'absolute',
+    bottom: 8,
+    left: 2,
+    zIndex: 5,
+  },
+  slide3PlantRight: {
+    position: 'absolute',
+    bottom: 8,
+    right: 2,
+    zIndex: 5,
+  },
   textContent: {
     alignItems: 'center',
     paddingHorizontal: 32,
-    marginTop: 24,
+    marginTop: 16,
   },
   title: {
     fontSize: 24,
