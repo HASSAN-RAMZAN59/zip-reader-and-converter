@@ -20,6 +20,8 @@
     "react-native-permissions": "^5.2.2",
     "react-native-safe-area-context": "^5.0.0",
     "react-native-screens": "^4.4.0",
+    "react-native-svg": "^15.15.5",
+    "react-native-svg-transformer": "^1.5.3",
     "react-native-zip-archive": "^9.4.0"
   },
   "devDependencies": {
