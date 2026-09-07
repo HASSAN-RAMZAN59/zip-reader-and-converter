@@ -177,11 +177,12 @@ const styles = StyleSheet.create({
   },
   headerTitle: {
     fontSize: 22,
-    fontWeight: 'bold',
+    fontFamily: 'Poppins-Medium',
     color: '#000000',
   },
   scanningText: {
     fontSize: 12,
+    fontFamily: 'Poppins-Regular',
     color: '#000000',
     fontStyle: 'italic',
   },
@@ -205,14 +206,14 @@ const styles = StyleSheet.create({
   },
   cardTitle: {
     fontSize: 11,
-    fontWeight: '600',
+    fontFamily: 'Poppins-Regular',
     color: '#000000',
     textAlign: 'center',
     marginBottom: 4,
   },
   cardCount: {
     fontSize: 13,
-    fontWeight: 'bold',
+    fontFamily: 'Poppins-Medium',
     color: '#000000',
     textAlign: 'center',
   },
@@ -221,7 +222,7 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     fontSize: 20,
-    fontWeight: 'bold',
+    fontFamily: 'Poppins-Medium',
     color: '#000000',
     marginBottom: 14,
   },
@@ -239,8 +240,8 @@ const styles = StyleSheet.create({
     opacity: 0.5,
   },
   actionButtonText: {
-    fontSize: 16,
-    fontWeight: 'bold',
+    fontSize: 15,
+    fontFamily: 'Poppins-Medium',
     color: '#000000',
   },
 });

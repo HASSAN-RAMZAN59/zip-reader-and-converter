@@ -2,7 +2,7 @@ import React, { useState, useRef } from 'react';
 import {
   View,
   Text,
-  Button,
+  TouchableOpacity,
   StyleSheet,
   FlatList,
   Dimensions,
@@ -14,15 +14,15 @@ const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const ONBOARDING_SLIDES = [
   {
     id: '1',
-    text: 'Welcome & Introduction - Fastest Zip & File Manager',
+    text: 'Compress your files into zip archives quickly and efficiently.',
   },
   {
     id: '2',
-    text: 'Features Highlight - Compress any format & Extract instantly',
+    text: 'Easily unzip and extract files right on your device anytime.',
   },
   {
     id: '3',
-    text: 'Security Highlight - Secure your files with Password Protection',
+    text: 'Manage and share your archives seamlessly with one tap.',
   },
 ];
 
@@ -31,36 +31,39 @@ export const OnboardingScreen = ({ navigation }) => {
   const flatListRef = useRef(null);
 
   const handleScroll = (event) => {
-    const slideIndex = Math.round(
-      event.nativeEvent.contentOffset.x / SCREEN_WIDTH
-    );
-    if (slideIndex !== currentIndex && slideIndex >= 0 && slideIndex < ONBOARDING_SLIDES.length) {
-      setCurrentIndex(slideIndex);
-    }
+    const offsetX = event.nativeEvent.contentOffset.x;
+    const index = Math.round(offsetX / SCREEN_WIDTH);
+    setCurrentIndex(index);
   };
 
   const handleNext = () => {
     if (currentIndex < ONBOARDING_SLIDES.length - 1) {
-      const nextIndex = currentIndex + 1;
-      flatListRef.current?.scrollToIndex({ index: nextIndex, animated: true });
-      setCurrentIndex(nextIndex);
+      flatListRef.current?.scrollToIndex({
+        index: currentIndex + 1,
+        animated: true,
+      });
+      setCurrentIndex(currentIndex + 1);
     }
   };
 
   const handleBack = () => {
     if (currentIndex > 0) {
-      const prevIndex = currentIndex - 1;
-      flatListRef.current?.scrollToIndex({ index: prevIndex, animated: true });
-      setCurrentIndex(prevIndex);
+      flatListRef.current?.scrollToIndex({
+        index: currentIndex - 1,
+        animated: true,
+      });
+      setCurrentIndex(currentIndex - 1);
     }
   };
 
   const handleGetStarted = async () => {
-    await storageService.setHasLaunched(true);
-    navigation.reset({
-      index: 0,
-      routes: [{ name: 'Home' }],
-    });
+    try {
+      await storageService.setHasLaunched(true);
+      navigation.replace('Home');
+    } catch (error) {
+      console.error('Error saving onboarding state:', error);
+      navigation.replace('Home');
+    }
   };
 
   const renderSlide = ({ item }) => (
@@ -91,16 +94,24 @@ export const OnboardingScreen = ({ navigation }) => {
         </Text>
 
         <View style={styles.buttonRow}>
-          {currentIndex > 0 && (
-            <Button title="Back" onPress={handleBack} color="#000000" />
+          {currentIndex > 0 ? (
+            <TouchableOpacity style={styles.navButtonSecondary} onPress={handleBack} activeOpacity={0.7}>
+              <Text style={styles.navButtonSecondaryText}>Back</Text>
+            </TouchableOpacity>
+          ) : (
+            <View />
           )}
 
           <View style={styles.flexSpacer} />
 
           {!isLastSlide ? (
-            <Button title="Next" onPress={handleNext} color="#000000" />
+            <TouchableOpacity style={styles.navButtonPrimary} onPress={handleNext} activeOpacity={0.7}>
+              <Text style={styles.navButtonPrimaryText}>Next</Text>
+            </TouchableOpacity>
           ) : (
-            <Button title="Get Started" onPress={handleGetStarted} color="#000000" />
+            <TouchableOpacity style={styles.navButtonPrimary} onPress={handleGetStarted} activeOpacity={0.7}>
+              <Text style={styles.navButtonPrimaryText}>Get Started</Text>
+            </TouchableOpacity>
           )}
         </View>
       </View>
@@ -124,9 +135,10 @@ const styles = StyleSheet.create({
   },
   text: {
     color: '#000000',
-    fontSize: 20,
+    fontSize: 18,
+    fontFamily: 'Poppins-Regular',
     textAlign: 'center',
-    lineHeight: 28,
+    lineHeight: 26,
   },
   footer: {
     paddingHorizontal: 24,
@@ -136,6 +148,7 @@ const styles = StyleSheet.create({
   indicatorText: {
     color: '#000000',
     fontSize: 14,
+    fontFamily: 'Poppins-Medium',
     marginBottom: 16,
   },
   buttonRow: {
@@ -146,6 +159,26 @@ const styles = StyleSheet.create({
   },
   flexSpacer: {
     flex: 1,
+  },
+  navButtonPrimary: {
+    backgroundColor: '#000000',
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 6,
+  },
+  navButtonPrimaryText: {
+    color: '#FFFFFF',
+    fontSize: 14,
+    fontFamily: 'Poppins-Medium',
+  },
+  navButtonSecondary: {
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+  },
+  navButtonSecondaryText: {
+    color: '#000000',
+    fontSize: 14,
+    fontFamily: 'Poppins-Medium',
   },
 });
 

@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useCallback, useRef } from 'react';
-import { View, Text, Button, StyleSheet, AppState, Animated } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, AppState, Animated } from 'react-native';
 import { permissionsService } from '../services/permissionsService';
 import { storageService } from '../services/storageService';
 
@@ -24,18 +24,18 @@ export const PermissionsScreen = ({ navigation }) => {
           navigation.replace('Onboarding');
         }
       } else {
-        // If user came back without granting, gently reveal UI
+        // Only show content if permission is genuinely missing
         Animated.timing(contentFadeAnim, {
           toValue: 1,
-          duration: 300,
+          duration: 250,
           useNativeDriver: true,
         }).start();
       }
     } catch (error) {
-      console.error('Error checking permission in PermissionsScreen:', error);
+      console.error('Permission check error:', error);
       Animated.timing(contentFadeAnim, {
         toValue: 1,
-        duration: 300,
+        duration: 250,
         useNativeDriver: true,
       }).start();
     }
@@ -58,23 +58,21 @@ export const PermissionsScreen = ({ navigation }) => {
   }, [checkAndNavigate]);
 
   const handleGrantPermission = async () => {
-    if (checking || isNavigatingRef.current) return;
     setChecking(true);
-
     try {
-      // Fade out the UI smoothly before launching Settings
-      Animated.timing(contentFadeAnim, {
-        toValue: 0,
-        duration: 200,
-        useNativeDriver: true,
-      }).start();
-
-      const isGranted = await permissionsService.requestStoragePermission();
-      if (isGranted) {
-        await checkAndNavigate();
+      const granted = await permissionsService.requestStoragePermission();
+      if (granted) {
+        isNavigatingRef.current = true;
+        contentFadeAnim.setValue(0);
+        const hasLaunched = await storageService.getHasLaunched();
+        if (hasLaunched) {
+          navigation.replace('Home');
+        } else {
+          navigation.replace('Onboarding');
+        }
       }
     } catch (error) {
-      console.error('Error handling grant permission:', error);
+      console.error('Error requesting permission:', error);
       Animated.timing(contentFadeAnim, {
         toValue: 1,
         duration: 300,
@@ -94,12 +92,16 @@ export const PermissionsScreen = ({ navigation }) => {
         </Text>
 
         <View style={styles.buttonContainer}>
-          <Button
-            title={checking ? 'Checking...' : 'Grant Permission'}
+          <TouchableOpacity
+            style={[styles.grantButton, checking && styles.disabledButton]}
             onPress={handleGrantPermission}
             disabled={checking}
-            color="#000000"
-          />
+            activeOpacity={0.8}
+          >
+            <Text style={styles.grantButtonText}>
+              {checking ? 'Checking...' : 'Grant Permission'}
+            </Text>
+          </TouchableOpacity>
         </View>
       </Animated.View>
     </View>
@@ -121,24 +123,38 @@ const styles = StyleSheet.create({
   title: {
     color: '#000000',
     fontSize: 20,
-    fontWeight: 'bold',
+    fontFamily: 'Poppins-Medium',
     marginBottom: 16,
     textAlign: 'center',
   },
   description: {
     color: '#000000',
     fontSize: 14,
+    fontFamily: 'Poppins-Regular',
     textAlign: 'center',
     marginBottom: 32,
-    lineHeight: 20,
+    lineHeight: 22,
   },
   buttonContainer: {
     width: '100%',
     maxWidth: 240,
   },
+  grantButton: {
+    backgroundColor: '#000000',
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    borderRadius: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  disabledButton: {
+    opacity: 0.6,
+  },
+  grantButtonText: {
+    color: '#FFFFFF',
+    fontSize: 15,
+    fontFamily: 'Poppins-Medium',
+  },
 });
 
 export default PermissionsScreen;
-
-
-

@@ -162,7 +162,7 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 25,
-    fontWeight: '700',
+    fontFamily: 'Poppins-Medium',
     color: '#1F2923',
     letterSpacing: 0.3,
     marginBottom: 10,
@@ -170,7 +170,7 @@ const styles = StyleSheet.create({
   },
   subtitle: {
     fontSize: 15,
-    fontWeight: '400',
+    fontFamily: 'Poppins-Regular',
     color: '#6E7D75',
     textAlign: 'center',
     lineHeight: 22,
@@ -232,7 +232,7 @@ const styles = StyleSheet.create({
   },
   brandText: {
     fontSize: 34,
-    fontWeight: '900',
+    fontFamily: 'Poppins-Medium',
     color: '#FFFFFF',
     letterSpacing: 1.2,
     includeFontPadding: false,

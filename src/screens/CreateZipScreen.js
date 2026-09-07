@@ -240,12 +240,12 @@ const styles = StyleSheet.create({
   },
   backButtonText: {
     fontSize: 14,
-    fontWeight: 'bold',
+    fontFamily: 'Poppins-Medium',
     color: '#000000',
   },
   headerTitle: {
     fontSize: 20,
-    fontWeight: 'bold',
+    fontFamily: 'Poppins-Medium',
     color: '#000000',
   },
   inputSection: {
@@ -253,7 +253,7 @@ const styles = StyleSheet.create({
   },
   inputLabel: {
     fontSize: 14,
-    fontWeight: 'bold',
+    fontFamily: 'Poppins-Medium',
     color: '#000000',
     marginBottom: 6,
   },
@@ -264,6 +264,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 10,
     fontSize: 14,
+    fontFamily: 'Poppins-Regular',
     color: '#000000',
     marginBottom: 12,
   },
@@ -281,12 +282,12 @@ const styles = StyleSheet.create({
   },
   pickerButtonText: {
     fontSize: 15,
-    fontWeight: 'bold',
+    fontFamily: 'Poppins-Medium',
     color: '#000000',
   },
   subTitle: {
     fontSize: 15,
-    fontWeight: 'bold',
+    fontFamily: 'Poppins-Medium',
     color: '#000000',
     marginBottom: 6,
   },
@@ -310,11 +311,12 @@ const styles = StyleSheet.create({
   },
   fileName: {
     fontSize: 13,
-    fontWeight: '600',
+    fontFamily: 'Poppins-Medium',
     color: '#000000',
   },
   fileSize: {
     fontSize: 11,
+    fontFamily: 'Poppins-Regular',
     color: '#000000',
     marginTop: 2,
   },
@@ -326,8 +328,8 @@ const styles = StyleSheet.create({
   },
   removeButtonText: {
     fontSize: 11,
+    fontFamily: 'Poppins-Medium',
     color: '#000000',
-    fontWeight: 'bold',
   },
   emptyContainer: {
     paddingVertical: 24,
@@ -335,6 +337,7 @@ const styles = StyleSheet.create({
   },
   emptyText: {
     fontSize: 13,
+    fontFamily: 'Poppins-Regular',
     color: '#888888',
   },
   footerSection: {
@@ -344,6 +347,7 @@ const styles = StyleSheet.create({
   },
   compressingText: {
     fontSize: 13,
+    fontFamily: 'Poppins-Regular',
     color: '#000000',
     textAlign: 'center',
     marginBottom: 8,
@@ -358,8 +362,8 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   compressButtonText: {
-    fontSize: 16,
-    fontWeight: 'bold',
+    fontSize: 15,
+    fontFamily: 'Poppins-Medium',
     color: '#000000',
   },
   disabledButton: {

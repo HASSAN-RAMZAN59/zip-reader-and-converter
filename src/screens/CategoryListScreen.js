@@ -843,7 +843,7 @@ const styles = StyleSheet.create({
   },
   backButtonText: {
     fontSize: 14,
-    fontWeight: 'bold',
+    fontFamily: 'Poppins-Medium',
     color: '#000000',
   },
   actionHeaderButton: {
@@ -855,12 +855,12 @@ const styles = StyleSheet.create({
   },
   actionHeaderButtonText: {
     fontSize: 12,
-    fontWeight: 'bold',
+    fontFamily: 'Poppins-Medium',
     color: '#000000',
   },
   headerTitle: {
     fontSize: 18,
-    fontWeight: 'bold',
+    fontFamily: 'Poppins-Medium',
     color: '#000000',
     flex: 1,
   },
@@ -900,7 +900,7 @@ const styles = StyleSheet.create({
   checkboxCheckText: {
     color: '#FFFFFF',
     fontSize: 13,
-    fontWeight: 'bold',
+    fontFamily: 'Poppins-Medium',
   },
   thumbnailContainer: {
     position: 'relative',
@@ -946,7 +946,7 @@ const styles = StyleSheet.create({
   videoBadgeText: {
     fontSize: 8,
     color: '#FFFFFF',
-    fontWeight: 'bold',
+    fontFamily: 'Poppins-Medium',
   },
   fileDetails: {
     flex: 1,
@@ -954,11 +954,12 @@ const styles = StyleSheet.create({
   fileName: {
     fontSize: 14,
     color: '#000000',
-    fontWeight: '500',
+    fontFamily: 'Poppins-Medium',
     marginBottom: 2,
   },
   fileSize: {
     fontSize: 12,
+    fontFamily: 'Poppins-Regular',
     color: '#000000',
   },
   emptyContainer: {
@@ -968,6 +969,7 @@ const styles = StyleSheet.create({
   },
   emptyText: {
     fontSize: 14,
+    fontFamily: 'Poppins-Regular',
     color: '#000000',
   },
   selectionBottomBar: {
@@ -992,7 +994,7 @@ const styles = StyleSheet.create({
   compressActionButtonText: {
     color: '#FFFFFF',
     fontSize: 15,
-    fontWeight: 'bold',
+    fontFamily: 'Poppins-Medium',
   },
   modalOverlay: {
     flex: 1,
@@ -1010,7 +1012,7 @@ const styles = StyleSheet.create({
   },
   modalTitle: {
     fontSize: 18,
-    fontWeight: 'bold',
+    fontFamily: 'Poppins-Medium',
     color: '#000000',
     marginBottom: 6,
     textAlign: 'center',
@@ -1020,14 +1022,14 @@ const styles = StyleSheet.create({
     color: '#000000',
     textAlign: 'center',
     marginBottom: 16,
-    fontWeight: '500',
+    fontFamily: 'Poppins-Regular',
   },
   passwordSection: {
     marginBottom: 10,
   },
   inputLabel: {
     fontSize: 13,
-    fontWeight: 'bold',
+    fontFamily: 'Poppins-Medium',
     color: '#000000',
     marginBottom: 6,
   },
@@ -1038,6 +1040,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 8,
     fontSize: 14,
+    fontFamily: 'Poppins-Regular',
     color: '#000000',
     marginBottom: 14,
   },
@@ -1049,6 +1052,7 @@ const styles = StyleSheet.create({
   },
   loadingText: {
     fontSize: 13,
+    fontFamily: 'Poppins-Regular',
     color: '#000000',
     marginLeft: 8,
     fontStyle: 'italic',
@@ -1064,7 +1068,7 @@ const styles = StyleSheet.create({
   },
   modalButtonText: {
     fontSize: 14,
-    fontWeight: 'bold',
+    fontFamily: 'Poppins-Medium',
     color: '#000000',
   },
   cancelButton: {
@@ -1079,7 +1083,7 @@ const styles = StyleSheet.create({
   cancelButtonText: {
     fontSize: 14,
     color: '#000000',
-    fontWeight: '600',
+    fontFamily: 'Poppins-Regular',
   },
   disabledButton: {
     opacity: 0.5,
@@ -1107,11 +1111,12 @@ const styles = StyleSheet.create({
   },
   previewTitle: {
     fontSize: 16,
-    fontWeight: 'bold',
+    fontFamily: 'Poppins-Medium',
     color: '#000000',
   },
   previewMeta: {
     fontSize: 12,
+    fontFamily: 'Poppins-Regular',
     color: '#000000',
     marginTop: 2,
   },
@@ -1133,6 +1138,7 @@ const styles = StyleSheet.create({
   },
   detailText: {
     fontSize: 13,
+    fontFamily: 'Poppins-Regular',
     color: '#000000',
     marginBottom: 4,
   },
