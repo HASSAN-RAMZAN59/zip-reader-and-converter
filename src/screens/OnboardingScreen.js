@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useCallback } from 'react';
 import {
   View,
   Text,
@@ -45,42 +45,9 @@ const ONBOARDING_SLIDES = [
   },
 ];
 
-export const OnboardingScreen = ({ navigation }) => {
-  const [currentIndex, setCurrentIndex] = useState(0);
-  const flatListRef = useRef(null);
-
-  const handleScroll = (event) => {
-    const offsetX = event.nativeEvent.contentOffset.x;
-    const index = Math.round(offsetX / SCREEN_WIDTH);
-    if (index >= 0 && index < ONBOARDING_SLIDES.length) {
-      setCurrentIndex(index);
-    }
-  };
-
-  const handleNext = () => {
-    if (currentIndex < ONBOARDING_SLIDES.length - 1) {
-      flatListRef.current?.scrollToIndex({
-        index: currentIndex + 1,
-        animated: true,
-      });
-      setCurrentIndex(currentIndex + 1);
-    } else {
-      handleGetStarted();
-    }
-  };
-
-  const handleGetStarted = async () => {
-    try {
-      await storageService.setHasLaunched(true);
-      navigation.replace('Home');
-    } catch (error) {
-      console.error('Error saving onboarding state:', error);
-      navigation.replace('Home');
-    }
-  };
-
-  const renderSlideIllustration = (id) => {
-    if (id === '2') {
+export const SlideItem = React.memo(({ item }) => {
+  const renderIllustration = () => {
+    if (item.id === '2') {
       return (
         <View style={styles.illustrationContainer}>
           <SmartScanIllustration
@@ -92,7 +59,7 @@ export const OnboardingScreen = ({ navigation }) => {
       );
     }
 
-    if (id === '3') {
+    if (item.id === '3') {
       return (
         <View style={styles.illustrationContainer}>
           {/* Green Glow aura behind phone */}
@@ -119,7 +86,7 @@ export const OnboardingScreen = ({ navigation }) => {
       );
     }
 
-    // Default to Slide 1's composite illustration
+    // Slide 1
     return (
       <View style={styles.illustrationContainer}>
         {/* Background Foliage, Clouds & Objects */}
@@ -147,17 +114,61 @@ export const OnboardingScreen = ({ navigation }) => {
     );
   };
 
-  const renderSlide = ({ item }) => (
+  return (
     <View style={styles.slide}>
-      {/* 3D Graphic Illustration */}
-      {renderSlideIllustration(item.id)}
-
-      {/* Slide Text Content */}
+      {renderIllustration()}
       <View style={styles.textContent}>
         <Text style={styles.title}>{item.title}</Text>
         <Text style={styles.subtitle}>{item.subtitle}</Text>
       </View>
     </View>
+  );
+});
+
+export const OnboardingScreen = ({ navigation }) => {
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const flatListRef = useRef(null);
+
+  const handleScroll = useCallback((event) => {
+    const offsetX = event.nativeEvent.contentOffset.x;
+    const index = Math.round(offsetX / SCREEN_WIDTH);
+    if (index >= 0 && index < ONBOARDING_SLIDES.length) {
+      setCurrentIndex((prev) => (prev !== index ? index : prev));
+    }
+  }, []);
+
+  const handleNext = () => {
+    if (currentIndex < ONBOARDING_SLIDES.length - 1) {
+      const nextIndex = currentIndex + 1;
+      flatListRef.current?.scrollToIndex({
+        index: nextIndex,
+        animated: true,
+      });
+      setCurrentIndex(nextIndex);
+    } else {
+      handleGetStarted();
+    }
+  };
+
+  const handleGetStarted = async () => {
+    try {
+      await storageService.setHasLaunched(true);
+      navigation.replace('Home');
+    } catch (error) {
+      console.error('Error saving onboarding state:', error);
+      navigation.replace('Home');
+    }
+  };
+
+  const renderItem = useCallback(({ item }) => <SlideItem item={item} />, []);
+
+  const getItemLayout = useCallback(
+    (_, index) => ({
+      length: SCREEN_WIDTH,
+      offset: SCREEN_WIDTH * index,
+      index,
+    }),
+    [],
   );
 
   const isLastSlide = currentIndex === ONBOARDING_SLIDES.length - 1;
@@ -183,12 +194,19 @@ export const OnboardingScreen = ({ navigation }) => {
       <FlatList
         ref={flatListRef}
         data={ONBOARDING_SLIDES}
-        renderItem={renderSlide}
+        renderItem={renderItem}
         keyExtractor={(item) => item.id}
         horizontal
         pagingEnabled
         showsHorizontalScrollIndicator={false}
         onMomentumScrollEnd={handleScroll}
+        getItemLayout={getItemLayout}
+        initialNumToRender={3}
+        maxToRenderPerBatch={3}
+        windowSize={3}
+        removeClippedSubviews={false}
+        decelerationRate="fast"
+        bounces={false}
         style={styles.flatList}
       />
 
@@ -295,12 +313,12 @@ const styles = StyleSheet.create({
     width: 268,
     height: 345,
     borderRadius: 36,
-    backgroundColor: 'rgba(76, 175, 80, 0.28)',
+    backgroundColor: 'rgba(76, 175, 80, 0.18)',
     shadowColor: '#4CAF50',
     shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.9,
-    shadowRadius: 32,
-    elevation: 10,
+    shadowOpacity: 0.5,
+    shadowRadius: 16,
+    elevation: 2,
     zIndex: 1,
   },
   slide3Ground: {
