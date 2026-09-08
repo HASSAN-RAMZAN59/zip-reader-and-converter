@@ -16,6 +16,9 @@ import {
   NativeModules,
 } from 'react-native';
 import DocumentPicker from 'react-native-document-picker';
+import FolderIcon from '../assets/fi_12075662.svg';
+import MoreVertIcon from '../assets/more_vert.svg';
+import SearchIcon from '../assets/search.svg';
 import {
   extractZipArchive,
   checkArchiveEncrypted,
@@ -78,7 +81,7 @@ const VideoThumbnail = React.memo(({ path }) => {
             setThumbUri(uri);
           }
         })
-        .catch(() => {});
+        .catch(() => { });
     }
     return () => {
       isMounted = false;
@@ -366,7 +369,7 @@ export const CategoryListScreen = ({ route, navigation }) => {
       Alert.alert(
         'Extraction Error',
         error.message ||
-          'Failed to extract archive. Please verify if password is correct or if file is corrupted.'
+        'Failed to extract archive. Please verify if password is correct or if file is corrupted.'
       );
     } finally {
       setIsExtracting(false);
@@ -430,12 +433,13 @@ export const CategoryListScreen = ({ route, navigation }) => {
 
     const isImg = categoryName === 'Images';
     const isVid = categoryName === 'Videos';
+    const isCompressed = categoryName === 'Compressed';
     const isSelected = selectedPaths.has(item.path);
 
     return (
       <TouchableOpacity
         style={[
-          styles.fileItem,
+          isCompressed ? styles.compressedCard : styles.fileItem,
           isSelected && styles.fileItemSelected,
         ]}
         activeOpacity={0.7}
@@ -457,13 +461,20 @@ export const CategoryListScreen = ({ route, navigation }) => {
           </View>
         )}
 
+        {/* Compressed Folder Icon */}
+        {isCompressed && !isSelectionMode && (
+          <View style={styles.compressedIconContainer}>
+            <FolderIcon width={32} height={32} />
+          </View>
+        )}
+
         {/* Render Image Thumbnail (Only in Images category) */}
         {isImg && item.path ? (
           <Image
             source={{ uri: 'file://' + item.path }}
             style={styles.thumbnailImage}
             resizeMode="cover"
-            onError={() => {}}
+            onError={() => { }}
           />
         ) : null}
 
@@ -471,12 +482,19 @@ export const CategoryListScreen = ({ route, navigation }) => {
         {isVid && item.path ? <VideoThumbnail path={item.path} /> : null}
 
         {/* File Info */}
-        <View style={styles.fileDetails}>
-          <Text style={styles.fileName} numberOfLines={1} ellipsizeMode="middle">
+        <View style={isCompressed ? styles.compressedTextContainer : styles.fileDetails}>
+          <Text style={isCompressed ? styles.compressedFileName : styles.fileName} numberOfLines={1} ellipsizeMode="middle">
             {item.name || 'Unnamed File'}
           </Text>
-          <Text style={styles.fileSize}>{formatFileSize(item.size)}</Text>
+          <Text style={isCompressed ? styles.compressedFileSize : styles.fileSize}>{formatFileSize(item.size)}</Text>
         </View>
+
+        {/* Compressed More Icon */}
+        {isCompressed && !isSelectionMode && (
+          <TouchableOpacity style={styles.moreButton} activeOpacity={0.7}>
+            <MoreVertIcon width={24} height={24} />
+          </TouchableOpacity>
+        )}
       </TouchableOpacity>
     );
   };
@@ -486,7 +504,7 @@ export const CategoryListScreen = ({ route, navigation }) => {
       <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
       <View style={styles.container}>
         {/* Header */}
-        <View style={styles.header}>
+        <View style={categoryName === 'Compressed' ? styles.compressedHeader : styles.header}>
           {isSelectionMode ? (
             <>
               <TouchableOpacity
@@ -509,6 +527,16 @@ export const CategoryListScreen = ({ route, navigation }) => {
                     ? 'Deselect All'
                     : 'Select All'}
                 </Text>
+              </TouchableOpacity>
+            </>
+          ) : categoryName === 'Compressed' ? (
+            <>
+              <View>
+                <Text style={styles.compressedHeaderTitle}>Compressed</Text>
+                <Text style={styles.compressedHeaderSubtitle}>Total Files ( {validFiles.length} )</Text>
+              </View>
+              <TouchableOpacity style={styles.searchButton}>
+                <SearchIcon width={24} height={24} />
               </TouchableOpacity>
             </>
           ) : (
@@ -971,6 +999,58 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontFamily: 'Poppins-Regular',
     color: '#000000',
+  },
+  compressedHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 16,
+    paddingBottom: 12,
+  },
+  compressedHeaderTitle: {
+    fontSize: 24,
+    fontFamily: 'Poppins-Medium',
+    color: '#333333',
+    fontWeight: '600',
+  },
+  compressedHeaderSubtitle: {
+    fontSize: 12,
+    fontFamily: 'Poppins-Regular',
+    color: '#888888',
+    marginTop: -2,
+  },
+  searchButton: {
+    padding: 8,
+  },
+  compressedCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#F5F5F5',
+    borderRadius: 12,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    marginBottom: 10,
+  },
+  compressedIconContainer: {
+    marginRight: 14,
+  },
+  compressedTextContainer: {
+    flex: 1,
+    justifyContent: 'center',
+  },
+  compressedFileName: {
+    fontSize: 14,
+    fontFamily: 'Poppins-Medium',
+    color: '#333333',
+    marginBottom: 2,
+  },
+  compressedFileSize: {
+    fontSize: 12,
+    fontFamily: 'Poppins-Regular',
+    color: '#888888',
+  },
+  moreButton: {
+    padding: 4,
   },
   selectionBottomBar: {
     position: 'absolute',
