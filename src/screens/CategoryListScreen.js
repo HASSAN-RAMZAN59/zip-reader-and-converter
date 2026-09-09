@@ -21,6 +21,7 @@ import FolderIcon from '../assets/fi_12075662.svg';
 import MoreVertIcon from '../assets/more_vert.svg';
 import SearchIcon from '../assets/search.svg';
 import DocumentBlueIcon from '../assets/document/fi_2991108.svg';
+import AudioRecordIcon from '../assets/fi_1834342.svg';
 import {
   extractZipArchive,
   checkArchiveEncrypted,
@@ -567,7 +568,8 @@ export const CategoryListScreen = ({ route, navigation }) => {
     const isVid = categoryName === 'Videos';
     const isCompressed = categoryName === 'Compressed';
     const isDocument = categoryName === 'Documents';
-    const useSpecialCard = isCompressed || isDocument || isImg;
+    const isAudio = categoryName === 'Audios' || categoryName === 'Audio';
+    const useSpecialCard = isCompressed || isDocument || isImg || isAudio;
     const isSelected = selectedPaths.has(item.path);
 
     return (
@@ -595,10 +597,12 @@ export const CategoryListScreen = ({ route, navigation }) => {
           </View>
         )}
 
-        {/* Special Icon or Thumbnail for Compressed, Document, or Images */}
+        {/* Special Icon or Thumbnail for Compressed, Document, Images, or Audio */}
         {useSpecialCard && (
           <View style={styles.compressedIconContainer}>
-            {isDocument ? (
+            {isAudio ? (
+              <AudioRecordIcon width={40} height={40} />
+            ) : isDocument ? (
               <DocumentBlueIcon width={32} height={32} />
             ) : isImg ? (
               item.path ? (
@@ -645,12 +649,19 @@ export const CategoryListScreen = ({ route, navigation }) => {
     );
   };
 
+  const isSpecialHeaderCategory =
+    categoryName === 'Compressed' ||
+    categoryName === 'Documents' ||
+    categoryName === 'Images' ||
+    categoryName === 'Audios' ||
+    categoryName === 'Audio';
+
   return (
     <SafeAreaView style={styles.safeArea}>
       <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
       <View style={styles.container}>
         {/* Header */}
-        <View style={(categoryName === 'Compressed' || categoryName === 'Documents' || categoryName === 'Images') ? styles.compressedHeader : styles.header}>
+        <View style={isSpecialHeaderCategory ? styles.compressedHeader : styles.header}>
           {isSelectionMode ? (
             <>
               <TouchableOpacity
@@ -675,11 +686,17 @@ export const CategoryListScreen = ({ route, navigation }) => {
                 </Text>
               </TouchableOpacity>
             </>
-          ) : (categoryName === 'Compressed' || categoryName === 'Documents' || categoryName === 'Images') ? (
+          ) : isSpecialHeaderCategory ? (
             <>
               <View>
                 <Text style={styles.compressedHeaderTitle}>
-                  {categoryName === 'Documents' ? 'Document' : categoryName === 'Images' ? 'Images' : 'Compressed'}
+                  {categoryName === 'Audios' || categoryName === 'Audio'
+                    ? 'Audio'
+                    : categoryName === 'Documents'
+                    ? 'Document'
+                    : categoryName === 'Images'
+                    ? 'Images'
+                    : 'Compressed'}
                 </Text>
                 <Text style={styles.compressedHeaderSubtitle}>Total Files ( {validFiles.length} )</Text>
               </View>
