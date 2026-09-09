@@ -114,6 +114,60 @@ class ManageStorageModule(private val reactContext: ReactApplicationContext) :
     }
 
     @ReactMethod
+    fun shareFile(filePath: String, customMimeType: String?, promise: Promise) {
+        try {
+            val cleanPath = if (filePath.startsWith("file://")) {
+                filePath.substring(7)
+            } else {
+                filePath
+            }
+
+            val file = File(cleanPath)
+            if (!file.exists()) {
+                promise.reject("FILE_NOT_FOUND", "File does not exist: $cleanPath")
+                return
+            }
+
+            val uri: Uri = try {
+                FileProvider.getUriForFile(
+                    reactContext,
+                    reactContext.packageName + ".provider",
+                    file
+                )
+            } catch (e: Exception) {
+                Uri.fromFile(file)
+            }
+
+            val mimeType = if (!customMimeType.isNullOrEmpty()) {
+                customMimeType
+            } else {
+                val extension = MimeTypeMap.getFileExtensionFromUrl(Uri.fromFile(file).toString())
+                if (extension.isNotEmpty()) {
+                    MimeTypeMap.getSingleton().getMimeTypeFromExtension(extension.lowercase()) ?: "*/*"
+                } else {
+                    "*/*"
+                }
+            }
+
+            val intent = Intent(Intent.ACTION_SEND).apply {
+                type = mimeType
+                putExtra(Intent.EXTRA_STREAM, uri)
+                addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            }
+
+            val chooser = Intent.createChooser(intent, "Share file").apply {
+                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            }
+
+            reactContext.startActivity(chooser)
+            promise.resolve(true)
+        } catch (e: Exception) {
+            promise.reject("SHARE_ERROR", e.message)
+        }
+    }
+
+    @ReactMethod
     fun getVideoThumbnail(videoPath: String, promise: Promise) {
         var isResolved = false
         val safeResolve: (String?) -> Unit = { uri ->

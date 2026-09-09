@@ -385,11 +385,16 @@ export const CategoryListScreen = ({ route, navigation }) => {
   const handleShareFile = async () => {
     if (selectedDetailFile && selectedDetailFile.path) {
       try {
-        await Share.share({
-          title: selectedDetailFile.name,
-          url: 'file://' + selectedDetailFile.path,
-        });
+        if (
+          NativeModules.ManageStorageModule &&
+          NativeModules.ManageStorageModule.shareFile
+        ) {
+          await NativeModules.ManageStorageModule.shareFile(selectedDetailFile.path, null);
+        } else {
+          Alert.alert('Share File', `Path: ${selectedDetailFile.path}`);
+        }
       } catch (error) {
+        console.error('Failed to share file:', error);
         Alert.alert('Error', 'Failed to share file.');
       }
     }
