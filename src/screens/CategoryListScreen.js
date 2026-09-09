@@ -189,15 +189,43 @@ const ApkIconThumbnail = React.memo(({ path }) => {
   return <APKIcon width={40} height={40} />;
 });
 
-const ItemIconThumbnail = React.memo(({ item, isDownload }) => {
+const ItemIconThumbnail = React.memo(({ item, isDownload, isExtracted }) => {
   const name = item?.name || '';
   const ext = getExtension(name);
 
-  // If in Downloads category, use fast static SVG icons only to prevent crash/memory issues
+  // If in Downloads category:
+  // Use ONLY fast static SVG icons! No heavy image/video decoding or native module calls to prevent memory crashes!
   if (isDownload) {
-    if (ext === '.apk') return <APKIcon width={40} height={40} />;
     if (IMAGE_EXTENSIONS.includes(ext)) return <ImagesIcon width={40} height={40} />;
     if (VIDEO_EXTENSIONS.includes(ext)) return <VideoIcon width={40} height={40} />;
+    if (ext === '.apk') return <APKIcon width={40} height={40} />;
+    if (AUDIO_EXTENSIONS.includes(ext)) return <AudioRecordIcon width={40} height={40} />;
+    if (DOCUMENT_EXTENSIONS.includes(ext)) return <DocumentBlueIcon width={32} height={32} />;
+    if (COMPRESSED_EXTENSIONS.includes(ext)) return <FolderIcon width={32} height={32} />;
+    return <DefaultFileIcon width={32} height={32} />;
+  }
+
+  // If in Extracted category:
+  if (isExtracted) {
+    if (IMAGE_EXTENSIONS.includes(ext)) {
+      if (item?.path) {
+        return (
+          <Image
+            source={{ uri: 'file://' + item.path }}
+            style={styles.imageThumbnailCard}
+            resizeMode="cover"
+            onError={() => { }}
+          />
+        );
+      }
+      return <ImagesIcon width={40} height={40} />;
+    }
+
+    if (VIDEO_EXTENSIONS.includes(ext)) {
+      return <VideoThumbnail path={item?.path} name={item?.name} />;
+    }
+
+    if (ext === '.apk') return <APKIcon width={40} height={40} />;
     if (AUDIO_EXTENSIONS.includes(ext)) return <AudioRecordIcon width={40} height={40} />;
     if (DOCUMENT_EXTENSIONS.includes(ext)) return <DocumentBlueIcon width={32} height={32} />;
     if (COMPRESSED_EXTENSIONS.includes(ext)) return <FolderIcon width={32} height={32} />;
@@ -243,6 +271,9 @@ const ItemIconThumbnail = React.memo(({ item, isDownload }) => {
 
 export const CategoryListScreen = ({ route, navigation }) => {
   const { categoryName = 'Files', files = [] } = route.params || {};
+
+  const isDownload = categoryName === 'Download' || categoryName === 'Downloads';
+  const isExtracted = categoryName === 'Extracted';
 
   // Safe file list filtering
   const validFiles = Array.isArray(files)
@@ -669,7 +700,8 @@ export const CategoryListScreen = ({ route, navigation }) => {
     const isAudio = categoryName === 'Audios' || categoryName === 'Audio';
     const isApk = categoryName === 'APK' || categoryName === 'Apk';
     const isDownload = categoryName === 'Download' || categoryName === 'Downloads';
-    const useSpecialCard = isCompressed || isDocument || isImg || isAudio || isVid || isApk || isDownload;
+    const isExtracted = categoryName === 'Extracted';
+    const useSpecialCard = isCompressed || isDocument || isImg || isAudio || isVid || isApk || isDownload || isExtracted;
     const isSelected = selectedPaths.has(item.path);
 
     return (
@@ -700,7 +732,7 @@ export const CategoryListScreen = ({ route, navigation }) => {
         {/* Render Thumbnail / Icon */}
         {useSpecialCard ? (
           <View style={styles.compressedIconContainer}>
-            <ItemIconThumbnail item={item} isDownload={isDownload} />
+            <ItemIconThumbnail item={item} isDownload={isDownload} isExtracted={isExtracted} />
           </View>
         ) : null}
 
@@ -740,7 +772,8 @@ export const CategoryListScreen = ({ route, navigation }) => {
     categoryName === 'APK' ||
     categoryName === 'Apk' ||
     categoryName === 'Download' ||
-    categoryName === 'Downloads';
+    categoryName === 'Downloads' ||
+    categoryName === 'Extracted';
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -784,6 +817,8 @@ export const CategoryListScreen = ({ route, navigation }) => {
                     ? 'APK'
                     : categoryName === 'Download' || categoryName === 'Downloads'
                     ? 'Downloads'
+                    : categoryName === 'Extracted'
+                    ? 'Extracted'
                     : categoryName === 'Documents'
                     ? 'Document'
                     : categoryName === 'Images'
@@ -1074,6 +1109,7 @@ export const CategoryListScreen = ({ route, navigation }) => {
                     source={{ uri: 'file://' + previewImage.path }}
                     style={styles.fullPreviewImage}
                     resizeMode="cover"
+                    onError={() => { }}
                   />
                 </View>
               ) : null}
@@ -1130,6 +1166,10 @@ export const CategoryListScreen = ({ route, navigation }) => {
                 <View style={styles.detailInfoIcon}>
                   {selectedDetailFile ? (
                     (() => {
+                      if (isDownload || isExtracted) {
+                        const IconComp = getFileIcon(selectedDetailFile.name);
+                        return <IconComp width={40} height={40} />;
+                      }
                       if (isVideoFile(selectedDetailFile.name)) {
                         return <VideoThumbnail path={selectedDetailFile.path} name={selectedDetailFile.name} />;
                       }
@@ -1473,92 +1513,101 @@ const styles = StyleSheet.create({
   },
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.6)',
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
     justifyContent: 'center',
     alignItems: 'center',
-    paddingHorizontal: 20,
+    paddingHorizontal: 24,
   },
   modalContent: {
     width: '100%',
     backgroundColor: '#FFFFFF',
-    borderWidth: 2,
-    borderColor: '#000000',
-    padding: 20,
+    borderRadius: 24,
+    padding: 24,
+    elevation: 10,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.25,
+    shadowRadius: 8,
   },
   modalTitle: {
-    fontSize: 18,
-    fontFamily: 'Poppins-Medium',
-    color: '#000000',
-    marginBottom: 6,
+    fontSize: 20,
+    fontFamily: 'Poppins-SemiBold',
+    fontWeight: '700',
+    color: '#2D3748',
+    marginBottom: 4,
     textAlign: 'center',
   },
   modalSubtitle: {
-    fontSize: 14,
-    color: '#000000',
+    fontSize: 13,
+    color: '#666666',
     textAlign: 'center',
-    marginBottom: 16,
+    marginBottom: 20,
     fontFamily: 'Poppins-Regular',
   },
   passwordSection: {
     marginBottom: 10,
   },
   inputLabel: {
-    fontSize: 13,
+    fontSize: 14,
     fontFamily: 'Poppins-Medium',
-    color: '#000000',
-    marginBottom: 6,
+    fontWeight: '600',
+    color: '#4A5568',
+    marginBottom: 8,
   },
   passwordInput: {
-    borderWidth: 1,
-    borderColor: '#000000',
-    backgroundColor: '#FFFFFF',
-    paddingHorizontal: 12,
-    paddingVertical: 8,
+    backgroundColor: '#F2F4F7',
+    borderRadius: 14,
+    paddingHorizontal: 16,
+    paddingVertical: 14,
     fontSize: 14,
     fontFamily: 'Poppins-Regular',
-    color: '#000000',
-    marginBottom: 14,
+    color: '#2D3748',
+    marginBottom: 20,
   },
   loadingContainer: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 12,
+    marginBottom: 16,
   },
   loadingText: {
     fontSize: 13,
-    fontFamily: 'Poppins-Regular',
-    color: '#000000',
+    fontFamily: 'Poppins-Medium',
+    color: '#0F7B39',
     marginLeft: 8,
-    fontStyle: 'italic',
   },
   modalButton: {
-    borderWidth: 1,
-    borderColor: '#000000',
-    backgroundColor: '#FFFFFF',
-    paddingVertical: 12,
+    backgroundColor: '#43A047',
+    borderRadius: 28,
+    paddingVertical: 14,
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 10,
+    elevation: 3,
+    shadowColor: '#2E7D32',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 3,
   },
   modalButtonText: {
-    fontSize: 14,
-    fontFamily: 'Poppins-Medium',
-    color: '#000000',
+    fontSize: 15,
+    fontFamily: 'Poppins-SemiBold',
+    fontWeight: '600',
+    color: '#FFFFFF',
   },
   cancelButton: {
-    borderWidth: 1,
-    borderColor: '#000000',
-    backgroundColor: '#FFFFFF',
-    paddingVertical: 10,
+    backgroundColor: '#F2F4F7',
+    borderRadius: 28,
+    paddingVertical: 12,
     alignItems: 'center',
     justifyContent: 'center',
-    marginTop: 4,
+    marginTop: 2,
   },
   cancelButtonText: {
     fontSize: 14,
-    color: '#000000',
-    fontFamily: 'Poppins-Regular',
+    color: '#4A5568',
+    fontFamily: 'Poppins-Medium',
+    fontWeight: '600',
   },
   disabledButton: {
     opacity: 0.5,
