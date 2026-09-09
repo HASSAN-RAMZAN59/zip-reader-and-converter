@@ -19,6 +19,7 @@ import DocumentPicker from 'react-native-document-picker';
 import FolderIcon from '../assets/fi_12075662.svg';
 import MoreVertIcon from '../assets/more_vert.svg';
 import SearchIcon from '../assets/search.svg';
+import DocumentBlueIcon from '../assets/document/fi_2991108.svg';
 import {
   extractZipArchive,
   checkArchiveEncrypted,
@@ -541,12 +542,14 @@ export const CategoryListScreen = ({ route, navigation }) => {
     const isImg = categoryName === 'Images';
     const isVid = categoryName === 'Videos';
     const isCompressed = categoryName === 'Compressed';
+    const isDocument = categoryName === 'Documents';
+    const useSpecialCard = isCompressed || isDocument;
     const isSelected = selectedPaths.has(item.path);
 
     return (
       <TouchableOpacity
         style={[
-          isCompressed ? styles.compressedCard : styles.fileItem,
+          useSpecialCard ? styles.compressedCard : styles.fileItem,
           isSelected && styles.fileItemSelected,
         ]}
         activeOpacity={0.7}
@@ -568,10 +571,14 @@ export const CategoryListScreen = ({ route, navigation }) => {
           </View>
         )}
 
-        {/* Compressed Folder Icon */}
-        {isCompressed && !isSelectionMode && (
+        {/* Special Icon for Compressed or Document */}
+        {useSpecialCard && !isSelectionMode && (
           <View style={styles.compressedIconContainer}>
-            <FolderIcon width={32} height={32} />
+            {isDocument ? (
+              <DocumentBlueIcon width={32} height={32} />
+            ) : (
+              <FolderIcon width={32} height={32} />
+            )}
           </View>
         )}
 
@@ -589,15 +596,15 @@ export const CategoryListScreen = ({ route, navigation }) => {
         {isVid && item.path ? <VideoThumbnail path={item.path} /> : null}
 
         {/* File Info */}
-        <View style={isCompressed ? styles.compressedTextContainer : styles.fileDetails}>
-          <Text style={isCompressed ? styles.compressedFileName : styles.fileName} numberOfLines={1} ellipsizeMode="middle">
+        <View style={useSpecialCard ? styles.compressedTextContainer : styles.fileDetails}>
+          <Text style={useSpecialCard ? styles.compressedFileName : styles.fileName} numberOfLines={1} ellipsizeMode="middle">
             {item.name || 'Unnamed File'}
           </Text>
-          <Text style={isCompressed ? styles.compressedFileSize : styles.fileSize}>{formatFileSize(item.size)}</Text>
+          <Text style={useSpecialCard ? styles.compressedFileSize : styles.fileSize}>{formatFileSize(item.size)}</Text>
         </View>
 
-        {/* Compressed More Icon */}
-        {isCompressed && !isSelectionMode && (
+        {/* More Icon (3 dots) */}
+        {useSpecialCard && !isSelectionMode && (
           <TouchableOpacity style={styles.moreButton} activeOpacity={0.7}>
             <MoreVertIcon width={24} height={24} />
           </TouchableOpacity>
@@ -611,7 +618,7 @@ export const CategoryListScreen = ({ route, navigation }) => {
       <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
       <View style={styles.container}>
         {/* Header */}
-        <View style={categoryName === 'Compressed' ? styles.compressedHeader : styles.header}>
+        <View style={(categoryName === 'Compressed' || categoryName === 'Documents') ? styles.compressedHeader : styles.header}>
           {isSelectionMode ? (
             <>
               <TouchableOpacity
@@ -636,10 +643,12 @@ export const CategoryListScreen = ({ route, navigation }) => {
                 </Text>
               </TouchableOpacity>
             </>
-          ) : categoryName === 'Compressed' ? (
+          ) : (categoryName === 'Compressed' || categoryName === 'Documents') ? (
             <>
               <View>
-                <Text style={styles.compressedHeaderTitle}>Compressed</Text>
+                <Text style={styles.compressedHeaderTitle}>
+                  {categoryName === 'Documents' ? 'Document' : 'Compressed'}
+                </Text>
                 <Text style={styles.compressedHeaderSubtitle}>Total Files ( {validFiles.length} )</Text>
               </View>
               <TouchableOpacity style={styles.searchButton}>
