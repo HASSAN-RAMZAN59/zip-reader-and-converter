@@ -22,7 +22,8 @@
     "react-native-screens": "^4.4.0",
     "react-native-svg": "^15.15.5",
     "react-native-svg-transformer": "^1.5.3",
-    "react-native-zip-archive": "^9.4.0"
+    "react-native-zip-archive": "^9.4.0",
+    "sharp": "^0.35.4"
   },
   "devDependencies": {
     "@babel/core": "^7.25.2",
