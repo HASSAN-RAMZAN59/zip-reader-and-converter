@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import {
   View,
   Text,
@@ -108,13 +108,18 @@ export const HomeScreen = ({ navigation }) => {
     }
   }, []);
 
+  const hasInitialScanRun = useRef(false);
+
   // Run only once on initial mount
   useEffect(() => {
     const init = async () => {
       const isGranted = await permissionsService.checkStoragePermission();
       if (isGranted) {
-        runFileScan();
-        fetchStorageInfo();
+        if (!hasInitialScanRun.current) {
+          hasInitialScanRun.current = true;
+          runFileScan();
+          fetchStorageInfo();
+        }
       }
     };
     init();
@@ -157,8 +162,11 @@ export const HomeScreen = ({ navigation }) => {
         const isGranted = await permissionsService.checkStoragePermission();
         if (isGranted) {
           setShowPermissionModal(false);
-          runFileScan();
-          fetchStorageInfo();
+          if (!hasInitialScanRun.current) {
+            hasInitialScanRun.current = true;
+            runFileScan();
+            fetchStorageInfo();
+          }
         }
       }
     });
