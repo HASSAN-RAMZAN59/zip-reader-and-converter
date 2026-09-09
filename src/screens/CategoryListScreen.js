@@ -382,16 +382,17 @@ export const CategoryListScreen = ({ route, navigation }) => {
     }
   };
 
-  const handleShareFile = async () => {
-    if (selectedDetailFile && selectedDetailFile.path) {
+  const handleShareFile = async (targetFilePath = null) => {
+    const filePath = targetFilePath || (selectedDetailFile && selectedDetailFile.path);
+    if (filePath) {
       try {
         if (
           NativeModules.ManageStorageModule &&
           NativeModules.ManageStorageModule.shareFile
         ) {
-          await NativeModules.ManageStorageModule.shareFile(selectedDetailFile.path, null);
+          await NativeModules.ManageStorageModule.shareFile(filePath, null);
         } else {
-          Alert.alert('Share File', `Path: ${selectedDetailFile.path}`);
+          Alert.alert('Share File', `Path: ${filePath}`);
         }
       } catch (error) {
         console.error('Failed to share file:', error);
@@ -935,8 +936,16 @@ export const CategoryListScreen = ({ route, navigation }) => {
           animationType="fade"
           onRequestClose={() => setImageModalVisible(false)}
         >
-          <View style={styles.previewModalOverlay}>
-            <View style={styles.previewModalContent}>
+          <TouchableOpacity
+            style={styles.previewModalOverlay}
+            activeOpacity={1}
+            onPressOut={() => setImageModalVisible(false)}
+          >
+            <TouchableOpacity
+              activeOpacity={1}
+              style={styles.previewModalContent}
+              onPress={() => {}}
+            >
               <View style={styles.previewHeader}>
                 <Text style={styles.previewTitle} numberOfLines={1}>
                   {previewImage ? previewImage.name : ''}
@@ -947,36 +956,43 @@ export const CategoryListScreen = ({ route, navigation }) => {
               </View>
 
               {previewImage && previewImage.path ? (
-                <Image
-                  source={{ uri: 'file://' + previewImage.path }}
-                  style={styles.fullPreviewImage}
-                  resizeMode="contain"
-                />
+                <View style={styles.imagePreviewWrapper}>
+                  <Image
+                    source={{ uri: 'file://' + previewImage.path }}
+                    style={styles.fullPreviewImage}
+                    resizeMode="cover"
+                  />
+                </View>
               ) : null}
 
               <View style={styles.previewFooter}>
                 <TouchableOpacity
-                  style={styles.modalButton}
-                  activeOpacity={0.7}
+                  style={styles.imageGalleryBtn}
+                  activeOpacity={0.8}
                   onPress={() => {
                     if (previewImage && previewImage.path) {
+                      setImageModalVisible(false);
                       openWithSystemApp(previewImage.path);
                     }
                   }}
                 >
-                  <Text style={styles.modalButtonText}>Open in Gallery / Full Screen</Text>
+                  <Text style={styles.imageBtnText}>Open in Gallery</Text>
                 </TouchableOpacity>
 
                 <TouchableOpacity
-                  style={styles.cancelButton}
-                  activeOpacity={0.7}
-                  onPress={() => setImageModalVisible(false)}
+                  style={styles.imageShareBtn}
+                  activeOpacity={0.8}
+                  onPress={() => {
+                    if (previewImage && previewImage.path) {
+                      handleShareFile(previewImage.path);
+                    }
+                  }}
                 >
-                  <Text style={styles.cancelButtonText}>Close Preview</Text>
+                  <Text style={styles.imageBtnText}>Share File</Text>
                 </TouchableOpacity>
               </View>
-            </View>
-          </View>
+            </TouchableOpacity>
+          </TouchableOpacity>
         </Modal>
 
         {/* 4. File Detail & System Opener Modal (Videos, Audios, Docs, APK) */}
@@ -1377,44 +1393,81 @@ const styles = StyleSheet.create({
   },
   previewModalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.85)',
+    backgroundColor: 'rgba(0, 0, 0, 0.75)',
     justifyContent: 'center',
     alignItems: 'center',
-    padding: 16,
+    paddingHorizontal: 20,
   },
   previewModalContent: {
     width: '100%',
-    maxHeight: '85%',
     backgroundColor: '#FFFFFF',
-    borderWidth: 2,
-    borderColor: '#000000',
-    padding: 16,
+    borderRadius: 24,
+    paddingHorizontal: 20,
+    paddingVertical: 24,
+    alignItems: 'center',
   },
   previewHeader: {
-    borderBottomWidth: 1,
-    borderBottomColor: '#000000',
-    paddingBottom: 8,
-    marginBottom: 12,
+    alignItems: 'center',
+    marginBottom: 16,
+    width: '100%',
   },
   previewTitle: {
     fontSize: 16,
     fontFamily: 'Poppins-Medium',
     color: '#000000',
+    textAlign: 'center',
   },
   previewMeta: {
-    fontSize: 12,
+    fontSize: 13,
     fontFamily: 'Poppins-Regular',
-    color: '#000000',
+    color: '#777777',
     marginTop: 2,
+    textAlign: 'center',
+  },
+  imagePreviewWrapper: {
+    width: '100%',
+    height: 300,
+    borderRadius: 20,
+    overflow: 'hidden',
+    marginBottom: 20,
+    backgroundColor: '#F0F0F0',
   },
   fullPreviewImage: {
     width: '100%',
-    height: 300,
-    backgroundColor: '#000000',
-    marginBottom: 14,
+    height: '100%',
   },
   previewFooter: {
-    marginTop: 6,
+    width: '100%',
+  },
+  imageGalleryBtn: {
+    backgroundColor: '#38A169',
+    borderRadius: 25,
+    paddingVertical: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 12,
+    elevation: 3,
+    shadowColor: '#000000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+  },
+  imageShareBtn: {
+    backgroundColor: '#38A169',
+    borderRadius: 25,
+    paddingVertical: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
+    elevation: 3,
+    shadowColor: '#000000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+  },
+  imageBtnText: {
+    color: '#FFFFFF',
+    fontSize: 15,
+    fontFamily: 'Poppins-Medium',
   },
   detailInfoBox: {
     borderWidth: 1,
