@@ -189,9 +189,20 @@ const ApkIconThumbnail = React.memo(({ path }) => {
   return <APKIcon width={40} height={40} />;
 });
 
-const ItemIconThumbnail = React.memo(({ item }) => {
+const ItemIconThumbnail = React.memo(({ item, isDownload }) => {
   const name = item?.name || '';
   const ext = getExtension(name);
+
+  // If in Downloads category, use fast static SVG icons only to prevent crash/memory issues
+  if (isDownload) {
+    if (ext === '.apk') return <APKIcon width={40} height={40} />;
+    if (IMAGE_EXTENSIONS.includes(ext)) return <ImagesIcon width={40} height={40} />;
+    if (VIDEO_EXTENSIONS.includes(ext)) return <VideoIcon width={40} height={40} />;
+    if (AUDIO_EXTENSIONS.includes(ext)) return <AudioRecordIcon width={40} height={40} />;
+    if (DOCUMENT_EXTENSIONS.includes(ext)) return <DocumentBlueIcon width={32} height={32} />;
+    if (COMPRESSED_EXTENSIONS.includes(ext)) return <FolderIcon width={32} height={32} />;
+    return <DefaultFileIcon width={32} height={32} />;
+  }
 
   if (ext === '.apk') {
     return <ApkIconThumbnail path={item?.path} />;
@@ -689,7 +700,7 @@ export const CategoryListScreen = ({ route, navigation }) => {
         {/* Render Thumbnail / Icon */}
         {useSpecialCard ? (
           <View style={styles.compressedIconContainer}>
-            <ItemIconThumbnail item={item} />
+            <ItemIconThumbnail item={item} isDownload={isDownload} />
           </View>
         ) : null}
 
