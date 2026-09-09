@@ -23,7 +23,17 @@ import {
   extractZipArchive,
   checkArchiveEncrypted,
   createZipArchive,
+  getArchiveContents,
 } from '../services/ZipService';
+
+// Import Icons from home (used as file type icons)
+import CompressedIcon from '../assets/home/Background.svg';
+import DocumentsIcon from '../assets/home/Background (2).svg';
+import ImagesIcon from '../assets/home/Background (3).svg';
+import AudioIcon from '../assets/home/Background (4).svg';
+import VideoIcon from '../assets/home/Background (5).svg';
+import APKIcon from '../assets/home/Background (6).svg';
+import DefaultFileIcon from '../assets/home/Background (1).svg';
 
 const COMPRESSED_EXTENSIONS = ['.zip', '.rar', '.7z', '.tar', '.gz'];
 const IMAGE_EXTENSIONS = [
@@ -58,6 +68,26 @@ const getExtension = (fileName = '') => {
 const isImageFile = (fileName = '') => {
   const ext = getExtension(fileName);
   return IMAGE_EXTENSIONS.includes(ext);
+};
+
+const getFileIcon = (fileName) => {
+  const ext = getExtension(fileName);
+  switch (ext) {
+    case '.png': case '.jpg': case '.jpeg': case '.gif': case '.webp':
+      return ImagesIcon;
+    case '.mp4': case '.mkv': case '.avi': case '.mov':
+      return VideoIcon;
+    case '.mp3': case '.wav': case '.aac':
+      return AudioIcon;
+    case '.pdf': case '.doc': case '.docx': case '.txt': case '.xls':
+      return DocumentsIcon;
+    case '.apk':
+      return APKIcon;
+    case '.zip': case '.rar': case '.7z':
+      return CompressedIcon;
+    default:
+      return DefaultFileIcon;
+  }
 };
 
 const isVideoFile = (fileName = '') => {
@@ -129,12 +159,57 @@ export const CategoryListScreen = ({ route, navigation }) => {
   const [isCompressing, setIsCompressing] = useState(false);
 
   // Extraction Modal State
-  const [extractModalVisible, setExtractModalVisible] = useState(false);
+  const [extractModalVisible, setExtractModalVisible] = useState(false); // This will now serve as the full-screen details modal
   const [selectedArchive, setSelectedArchive] = useState(null);
   const [password, setPassword] = useState('');
   const [isEncrypted, setIsEncrypted] = useState(false);
   const [isExtracting, setIsExtracting] = useState(false);
   const [extractingStatus, setExtractingStatus] = useState('');
+  
+  // New State for Zip Details
+  const [innerFiles, setInnerFiles] = useState([]);
+  const [isLoadingContents, setIsLoadingContents] = useState(false);
+  const [pendingTargetDir, setPendingTargetDir] = useState(null);
+  const [passwordModalVisible, setPasswordModalVisible] = useState(false);
+
+  useEffect(() => {
+    const loadContents = async () => {
+      if (!selectedArchive || !selectedArchive.path || !extractModalVisible) {
+        return;
+      }
+      setIsLoadingContents(true);
+      try {
+        const contents = await getArchiveContents(selectedArchive.path);
+        const formatted = (contents || [])
+          .filter(entry => !entry.isDirectory)
+          .map((entry, index) => {
+            const parts = entry.path.split('/');
+            const name = parts[parts.length - 1];
+            return { 
+              id: index.toString(), 
+              path: entry.path, 
+              name: name,
+              size: entry.size 
+            };
+          });
+        setInnerFiles(formatted);
+
+        const encrypted = await checkArchiveEncrypted(selectedArchive.path);
+        setIsEncrypted(encrypted);
+      } catch (err) {
+        console.error('Failed to load zip contents:', err);
+      } finally {
+        setIsLoadingContents(false);
+      }
+    };
+
+    if (extractModalVisible) {
+      loadContents();
+    } else {
+      // Clear contents when modal closes
+      setInnerFiles([]);
+    }
+  }, [selectedArchive, extractModalVisible]);
 
   // Image Preview Modal State
   const [imageModalVisible, setImageModalVisible] = useState(false);
@@ -277,13 +352,6 @@ export const CategoryListScreen = ({ route, navigation }) => {
       setPassword('');
       setIsEncrypted(false);
       setExtractModalVisible(true);
-
-      try {
-        const encrypted = await checkArchiveEncrypted(item.path);
-        setIsEncrypted(encrypted);
-      } catch (err) {
-        setIsEncrypted(false);
-      }
     } else if (isImageFile(item.name) || categoryName === 'Images') {
       setPreviewImage(item);
       setImageModalVisible(true);
@@ -315,9 +383,16 @@ export const CategoryListScreen = ({ route, navigation }) => {
   const closeExtractModal = () => {
     if (!isExtracting) {
       setExtractModalVisible(false);
-      setSelectedArchive(null);
       setPassword('');
       setIsEncrypted(false);
+      setPendingTargetDir(null);
+    }
+  };
+
+  const closePasswordModal = () => {
+    if (!isExtracting) {
+      setPasswordModalVisible(false);
+      setPassword('');
     }
   };
 
@@ -325,16 +400,8 @@ export const CategoryListScreen = ({ route, navigation }) => {
     return (fileName || '').replace(/\.[^/.]+$/, '');
   };
 
-  const performExtraction = async (destinationDirectory) => {
+  const performExtraction = async (destinationDirectory, pwd = '') => {
     if (!selectedArchive) return;
-
-    if (isEncrypted && !password.trim()) {
-      Alert.alert(
-        'Password Required',
-        'This archive is password protected. Please enter the password.'
-      );
-      return;
-    }
 
     setIsExtracting(true);
     setExtractingStatus('Extracting... Please wait');
@@ -343,7 +410,7 @@ export const CategoryListScreen = ({ route, navigation }) => {
       const result = await extractZipArchive(
         selectedArchive.path,
         destinationDirectory,
-        password
+        pwd
       );
 
       DeviceEventEmitter.emit('EXTRACTION_SUCCESS', result);
@@ -352,9 +419,11 @@ export const CategoryListScreen = ({ route, navigation }) => {
       }
 
       setExtractModalVisible(false);
+      setPasswordModalVisible(false);
       setSelectedArchive(null);
       setPassword('');
       setIsEncrypted(false);
+      setPendingTargetDir(null);
 
       Alert.alert(
         'Success',
@@ -365,12 +434,18 @@ export const CategoryListScreen = ({ route, navigation }) => {
       const errMsg = String(error.message || error || '').toLowerCase();
       if (errMsg.includes('password') || errMsg.includes('encrypted')) {
         setIsEncrypted(true);
+        if (!passwordModalVisible) {
+          setPendingTargetDir(destinationDirectory);
+          setPasswordModalVisible(true);
+        } else {
+          Alert.alert('Incorrect Password', 'The password you entered is incorrect.');
+        }
+      } else {
+        Alert.alert(
+          'Extraction Error',
+          error.message || 'Failed to extract archive. File might be corrupted.'
+        );
       }
-      Alert.alert(
-        'Extraction Error',
-        error.message ||
-        'Failed to extract archive. Please verify if password is correct or if file is corrupted.'
-      );
     } finally {
       setIsExtracting(false);
       setExtractingStatus('');
@@ -385,7 +460,13 @@ export const CategoryListScreen = ({ route, navigation }) => {
     );
     const baseName = getArchiveBaseName(selectedArchive.name);
     const targetDir = `${parentDir}/${baseName}`;
-    performExtraction(targetDir);
+    
+    if (isEncrypted) {
+      setPendingTargetDir(targetDir);
+      setPasswordModalVisible(true);
+    } else {
+      performExtraction(targetDir);
+    }
   };
 
   const convertSafUriToPath = (uri) => {
@@ -412,7 +493,12 @@ export const CategoryListScreen = ({ route, navigation }) => {
         if (chosenPath) {
           const baseName = getArchiveBaseName(selectedArchive.name);
           const targetDir = `${chosenPath}/${baseName}`;
-          performExtraction(targetDir);
+          if (isEncrypted) {
+            setPendingTargetDir(targetDir);
+            setPasswordModalVisible(true);
+          } else {
+            performExtraction(targetDir);
+          }
         } else {
           Alert.alert(
             'Folder Selection',
@@ -426,6 +512,27 @@ export const CategoryListScreen = ({ route, navigation }) => {
         Alert.alert('Error', 'Failed to pick custom folder.');
       }
     }
+  };
+
+  const handleConfirmPasswordExtraction = () => {
+    if (!password.trim()) {
+      Alert.alert('Password Required', 'Please enter the password to extract.');
+      return;
+    }
+    performExtraction(pendingTargetDir, password);
+  };
+
+  const renderInnerFileItem = ({ item }) => {
+    const IconComp = getFileIcon(item.name);
+    return (
+      <View style={styles.innerFileItem}>
+        <IconComp width={40} height={40} style={styles.fileIcon} />
+        <View style={styles.fileDetails}>
+          <Text style={styles.fileName} numberOfLines={1}>{item.name}</Text>
+          <Text style={styles.innerFileSize}>{formatFileSize(item.size)}</Text>
+        </View>
+      </View>
+    );
   };
 
   const renderFileItem = ({ item, index }) => {
@@ -669,70 +776,114 @@ export const CategoryListScreen = ({ route, navigation }) => {
           </View>
         </Modal>
 
-        {/* 2. Extraction Action Modal */}
+        {/* 2. Extraction Action Modal (Now Full Screen Details) */}
         <Modal
           visible={extractModalVisible}
+          transparent={false}
+          animationType="slide"
+          onRequestClose={closeExtractModal}
+        >
+          <SafeAreaView style={styles.detailsSafeArea}>
+            <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
+            <View style={styles.detailsContainer}>
+              {/* Header */}
+              <View style={styles.detailsHeader}>
+                <View style={styles.detailsHeaderLeft}>
+                  <TouchableOpacity onPress={closeExtractModal} style={styles.detailsBackButton}>
+                    <Text style={styles.detailsBackButtonText}>{'< Back'}</Text>
+                  </TouchableOpacity>
+                  <Text style={styles.detailsHeaderTitle}>Extracting</Text>
+                </View>
+              </View>
+
+              {/* Zip Details Section */}
+              <Text style={styles.sectionTitle}>Zip Details</Text>
+              <View style={styles.detailCard}>
+                <Text style={styles.detailLabel}>File Size</Text>
+                <Text style={styles.detailValue}>{selectedArchive ? formatFileSize(selectedArchive.size) : '0 B'}</Text>
+              </View>
+              <View style={styles.detailCard}>
+                <Text style={styles.detailLabel}>Total Files</Text>
+                <Text style={styles.detailValue}>{isLoadingContents ? 'Loading...' : innerFiles.length}</Text>
+              </View>
+
+              {/* File List Section */}
+              <Text style={styles.sectionTitle}>File List</Text>
+              <View style={styles.detailsListContainer}>
+                {isLoadingContents ? (
+                  <ActivityIndicator size="large" color="#4CAF50" style={{ marginTop: 20 }} />
+                ) : (
+                  <FlatList
+                    data={innerFiles}
+                    keyExtractor={(item) => item.id}
+                    renderItem={renderInnerFileItem}
+                    contentContainerStyle={styles.detailsListContent}
+                    ListEmptyComponent={
+                      <Text style={styles.emptyText}>No files could be parsed or archive is empty.</Text>
+                    }
+                  />
+                )}
+              </View>
+
+              {/* Bottom Actions */}
+              <View style={styles.detailsBottomActions}>
+                <TouchableOpacity style={styles.detailsExtractBtn} activeOpacity={0.8} onPress={handleExtractHere}>
+                  <Text style={styles.detailsExtractBtnText}>Extract Here</Text>
+                </TouchableOpacity>
+                <TouchableOpacity style={[styles.detailsExtractBtn, styles.detailsCustomFolderBtn]} activeOpacity={0.8} onPress={handleExtractToCustomFolder}>
+                  <Text style={styles.detailsExtractBtnText}>Choose Custom Folder</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </SafeAreaView>
+        </Modal>
+
+        {/* Password Modal */}
+        <Modal
+          visible={passwordModalVisible}
           transparent={true}
           animationType="fade"
-          onRequestClose={closeExtractModal}
+          onRequestClose={closePasswordModal}
         >
           <View style={styles.modalOverlay}>
             <View style={styles.modalContent}>
-              <Text style={styles.modalTitle}>Archive Extraction</Text>
+              <Text style={styles.modalTitle}>Password Required</Text>
               <Text style={styles.modalSubtitle} numberOfLines={2}>
                 {selectedArchive ? selectedArchive.name : ''}
               </Text>
 
-              {isEncrypted ? (
-                <View style={styles.passwordSection}>
-                  <Text style={styles.inputLabel}>Password Protected Archive</Text>
-                  <TextInput
-                    style={styles.passwordInput}
-                    placeholder="Enter archive password"
-                    placeholderTextColor="#888888"
-                    value={password}
-                    onChangeText={setPassword}
-                    editable={!isExtracting}
-                    secureTextEntry={false}
-                    autoCapitalize="none"
-                  />
-                </View>
-              ) : null}
+              <Text style={styles.inputLabel}>Enter archive password</Text>
+              <TextInput
+                style={styles.passwordInput}
+                placeholder="Password"
+                placeholderTextColor="#888888"
+                value={password}
+                onChangeText={setPassword}
+                editable={!isExtracting}
+                secureTextEntry={true}
+                autoCapitalize="none"
+              />
 
               {isExtracting && (
                 <View style={styles.loadingContainer}>
-                  <ActivityIndicator size="small" color="#000000" />
+                  <ActivityIndicator size="small" color="#4CAF50" />
                   <Text style={styles.loadingText}>{extractingStatus}</Text>
                 </View>
               )}
 
               <TouchableOpacity
                 style={[styles.modalButton, isExtracting && styles.disabledButton]}
-                activeOpacity={0.7}
-                onPress={handleExtractHere}
+                activeOpacity={0.8}
+                onPress={handleConfirmPasswordExtraction}
                 disabled={isExtracting}
               >
-                <Text style={styles.modalButtonText}>Extract Here</Text>
+                <Text style={styles.modalButtonText}>Extract</Text>
               </TouchableOpacity>
 
               <TouchableOpacity
-                style={[styles.modalButton, isExtracting && styles.disabledButton]}
-                activeOpacity={0.7}
-                onPress={handleExtractToCustomFolder}
-                disabled={isExtracting}
-              >
-                <Text style={styles.modalButtonText}>
-                  Choose Custom Destination Folder...
-                </Text>
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                style={[
-                  styles.cancelButton,
-                  isExtracting && styles.disabledButton,
-                ]}
-                activeOpacity={0.7}
-                onPress={closeExtractModal}
+                style={[styles.cancelButton, isExtracting && styles.disabledButton]}
+                activeOpacity={0.8}
+                onPress={closePasswordModal}
                 disabled={isExtracting}
               >
                 <Text style={styles.cancelButtonText}>Cancel</Text>
@@ -1221,6 +1372,127 @@ const styles = StyleSheet.create({
     fontFamily: 'Poppins-Regular',
     color: '#000000',
     marginBottom: 4,
+  },
+  // Zip Details Modal Styles
+  detailsSafeArea: {
+    flex: 1,
+    backgroundColor: '#FFFFFF',
+  },
+  detailsContainer: {
+    flex: 1,
+    paddingHorizontal: 20,
+    paddingTop: 16,
+  },
+  detailsHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 24,
+  },
+  detailsHeaderLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  detailsBackButton: {
+    marginRight: 12,
+    display: 'none', // Removed back button per user request
+  },
+  detailsBackButtonText: {
+    fontSize: 14,
+    color: '#666666',
+  },
+  detailsHeaderTitle: {
+    fontSize: 20,
+    fontFamily: 'Poppins-SemiBold',
+    fontWeight: '700',
+    color: '#333333',
+  },
+  sectionTitle: {
+    fontSize: 14,
+    fontFamily: 'Poppins-Medium',
+    color: '#333333',
+    marginBottom: 10,
+    marginTop: 10,
+  },
+  detailCard: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    backgroundColor: '#F4F5F7',
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+    borderRadius: 12,
+    marginBottom: 10,
+  },
+  detailLabel: {
+    fontSize: 14,
+    fontFamily: 'Poppins-Regular',
+    color: '#666666',
+  },
+  detailValue: {
+    fontSize: 14,
+    fontFamily: 'Poppins-Medium',
+    color: '#333333',
+  },
+  detailsListContainer: {
+    flex: 1,
+    marginBottom: 10,
+  },
+  detailsListContent: {
+    paddingBottom: 150,
+  },
+  innerFileItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#F4F5F7',
+    borderRadius: 12,
+    padding: 12,
+    marginBottom: 10,
+  },
+  fileIcon: {
+    marginRight: 12,
+  },
+  fileDetails: {
+    flex: 1,
+  },
+  fileName: {
+    fontSize: 14,
+    fontFamily: 'Poppins-Medium',
+    color: '#333333',
+    marginBottom: 4,
+  },
+  innerFileSize: {
+    fontSize: 12,
+    fontFamily: 'Poppins-Regular',
+    color: '#888888',
+  },
+  detailsBottomActions: {
+    position: 'absolute',
+    bottom: 20,
+    left: 0,
+    right: 0,
+    alignItems: 'center',
+  },
+  detailsExtractBtn: {
+    width: '85%',
+    backgroundColor: '#4CAF50',
+    borderRadius: 30,
+    paddingVertical: 16,
+    alignItems: 'center',
+    marginBottom: 12,
+    elevation: 4,
+    shadowColor: '#4CAF50',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 5,
+  },
+  detailsCustomFolderBtn: {
+    backgroundColor: '#4CAF50',
+  },
+  detailsExtractBtnText: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontFamily: 'Poppins-Medium',
+    fontWeight: '600',
   },
 });
 

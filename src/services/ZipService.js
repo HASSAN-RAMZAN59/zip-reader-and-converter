@@ -5,6 +5,7 @@ import {
   unzip,
   unzipWithPassword,
   isPasswordProtected,
+  listContents,
 } from 'react-native-zip-archive';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
@@ -287,6 +288,24 @@ export const getZipHistory = async () => {
   }
 };
 
+/**
+ * Retrieves the contents of a zip archive without extracting it
+ * @param {string} sourceZipPath - Absolute path to the source archive
+ * @returns {Promise<Array>} Array of file paths inside the archive
+ */
+export const getArchiveContents = async (sourceZipPath) => {
+  if (!sourceZipPath) return [];
+  try {
+    const cleanPath = decodeURIComponent(sourceZipPath.replace(/^file:\/\//, ''));
+    // listContents returns an array of strings (paths inside the zip)
+    const contents = await listContents(cleanPath);
+    return contents || [];
+  } catch (err) {
+    console.error('Failed to list archive contents:', err);
+    return [];
+  }
+};
+
 export default {
   createZipArchive,
   extractZipArchive,
@@ -295,4 +314,5 @@ export default {
   getZipHistory,
   saveExtractedHistory,
   getExtractedHistory,
+  getArchiveContents,
 };
