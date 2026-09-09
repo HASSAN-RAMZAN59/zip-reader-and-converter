@@ -1230,6 +1230,7 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     fontSize: 13,
     fontFamily: 'Poppins-Medium',
+  },
   apkThumbnailImage: {
     width: 40,
     height: 40,
