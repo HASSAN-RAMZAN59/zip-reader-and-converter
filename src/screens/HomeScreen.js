@@ -10,10 +10,13 @@ import {
   Alert,
   DeviceEventEmitter,
   ScrollView,
+  Modal,
+  AppState,
 } from 'react-native';
 import RNFS from 'react-native-fs';
 
 import { scanDeviceStorage } from '../services/FileScanner';
+import { permissionsService } from '../services/permissionsService';
 
 // Import SVG Assets
 import RefreshIcon from '../assets/home/refresh.svg';
@@ -29,6 +32,7 @@ import AudioIcon from '../assets/home/Background (4).svg';
 import VideoIcon from '../assets/home/Background (5).svg';
 import APKIcon from '../assets/home/Background (6).svg';
 import DownloadsIcon from '../assets/home/Background (7).svg';
+import PermissionIllustration from '../assets/permission/Group 1000007537.svg';
 
 const CATEGORY_UI = [
   { id: 'Compressed', title: 'Compressed', icon: CompressedIcon },
@@ -43,6 +47,9 @@ const CATEGORY_UI = [
 
 export const HomeScreen = ({ navigation }) => {
   const [isScanning, setIsScanning] = useState(false);
+  const [showPermissionModal, setShowPermissionModal] = useState(false);
+  const [checkingPermission, setCheckingPermission] = useState(false);
+
   const [categorizedData, setCategorizedData] = useState({
     Compressed: [],
     Extracted: [],
@@ -95,7 +102,7 @@ export const HomeScreen = ({ navigation }) => {
       setCategorizedData(results);
     } catch (error) {
       console.error('Scan failed:', error);
-      Alert.alert('Scan Error', 'Failed to scan device files.');
+      // Fail silently if permission is denied, it will prompt on click
     } finally {
       setIsScanning(false);
     }
@@ -103,25 +110,37 @@ export const HomeScreen = ({ navigation }) => {
 
   // Run only once on initial mount
   useEffect(() => {
-    runFileScan();
-    fetchStorageInfo();
+    const init = async () => {
+      const isGranted = await permissionsService.checkStoragePermission();
+      if (isGranted) {
+        runFileScan();
+        fetchStorageInfo();
+      }
+    };
+    init();
   }, [runFileScan, fetchStorageInfo]);
 
   // Listen for real-time extraction & creation events
   useEffect(() => {
     const extractionSub = DeviceEventEmitter.addListener(
       'EXTRACTION_SUCCESS',
-      () => {
-        runFileScan();
-        fetchStorageInfo();
+      async () => {
+        const isGranted = await permissionsService.checkStoragePermission();
+        if (isGranted) {
+          runFileScan();
+          fetchStorageInfo();
+        }
       }
     );
 
     const zipCreatedSub = DeviceEventEmitter.addListener(
       'ZIP_CREATED',
-      () => {
-        runFileScan();
-        fetchStorageInfo();
+      async () => {
+        const isGranted = await permissionsService.checkStoragePermission();
+        if (isGranted) {
+          runFileScan();
+          fetchStorageInfo();
+        }
       }
     );
 
@@ -130,6 +149,33 @@ export const HomeScreen = ({ navigation }) => {
       zipCreatedSub.remove();
     };
   }, [runFileScan, fetchStorageInfo]);
+
+  // Listen for AppState changes to detect permission grant from settings
+  useEffect(() => {
+    const subscription = AppState.addEventListener('change', async (nextAppState) => {
+      if (nextAppState === 'active') {
+        const isGranted = await permissionsService.checkStoragePermission();
+        if (isGranted) {
+          setShowPermissionModal(false);
+          runFileScan();
+          fetchStorageInfo();
+        }
+      }
+    });
+
+    return () => {
+      subscription.remove();
+    };
+  }, [runFileScan, fetchStorageInfo]);
+
+  const requirePermission = async (action) => {
+    const isGranted = await permissionsService.checkStoragePermission();
+    if (isGranted) {
+      action();
+    } else {
+      setShowPermissionModal(true);
+    }
+  };
 
   const handleCategoryPress = (categoryName) => {
     const files = categorizedData[categoryName] || [];
@@ -143,6 +189,22 @@ export const HomeScreen = ({ navigation }) => {
     navigation.navigate('CreateZip');
   };
 
+  const handleGrantPermission = async () => {
+    setCheckingPermission(true);
+    try {
+      const granted = await permissionsService.requestStoragePermission();
+      if (granted) {
+        setShowPermissionModal(false);
+        runFileScan();
+        fetchStorageInfo();
+      }
+    } catch (error) {
+      console.error('Error requesting permission:', error);
+    } finally {
+      setCheckingPermission(false);
+    }
+  };
+
   const renderCategoryItem = ({ item }) => {
     const count = categorizedData[item.id] ? categorizedData[item.id].length : 0;
     const IconComponent = item.icon;
@@ -151,7 +213,7 @@ export const HomeScreen = ({ navigation }) => {
       <TouchableOpacity
         style={styles.categoryItem}
         activeOpacity={0.7}
-        onPress={() => handleCategoryPress(item.id)}
+        onPress={() => requirePermission(() => handleCategoryPress(item.id))}
       >
         <IconComponent width={40} height={40} />
         <View style={styles.categoryTextContainer}>
@@ -177,7 +239,7 @@ export const HomeScreen = ({ navigation }) => {
             <Text style={styles.topHeaderSubtitle}>Manage your archives and files</Text>
           </View>
           <View style={styles.headerIcons}>
-            <TouchableOpacity onPress={() => { runFileScan(); fetchStorageInfo(); }} disabled={isScanning} activeOpacity={0.7} style={styles.iconButton}>
+            <TouchableOpacity onPress={() => requirePermission(() => { runFileScan(); fetchStorageInfo(); })} disabled={isScanning} activeOpacity={0.7} style={styles.iconButton}>
               <RefreshIcon width={24} height={24} style={[isScanning && styles.disabledIcon]} />
             </TouchableOpacity>
             <TouchableOpacity onPress={() => {}} activeOpacity={0.7} style={styles.iconButton}>
@@ -200,7 +262,7 @@ export const HomeScreen = ({ navigation }) => {
               <AvailableSpaceIcon width={12} height={12} />
               <Text style={styles.availableText}>{storageInfo.availableStr} Available</Text>
             </View>
-            <TouchableOpacity style={styles.createZipBtn} onPress={handleCreateZip} activeOpacity={0.8}>
+            <TouchableOpacity style={styles.createZipBtn} onPress={() => requirePermission(handleCreateZip)} activeOpacity={0.8}>
               <Text style={styles.createZipBtnText}>Create Zip File</Text>
               <FolderZipIcon width={20} height={20} style={{ marginLeft: 6 }} />
             </TouchableOpacity>
@@ -222,6 +284,37 @@ export const HomeScreen = ({ navigation }) => {
           contentContainerStyle={styles.gridContainer}
           columnWrapperStyle={styles.row}
         />
+
+        {/* Permission Modal */}
+        <Modal
+          visible={showPermissionModal}
+          transparent={true}
+          animationType="fade"
+          onRequestClose={() => setShowPermissionModal(false)}
+        >
+          <View style={styles.modalOverlay}>
+            <View style={styles.permissionModalBox}>
+              <PermissionIllustration width={140} height={120} style={styles.permissionIll} />
+              
+              <Text style={styles.permissionTitle}>Storage Permission !</Text>
+              <Text style={styles.permissionDesc}>
+                Allow Document Reader to access all your Documents on this Device ?
+              </Text>
+              
+              <TouchableOpacity
+                style={[styles.permissionAllowBtn, checkingPermission && styles.disabledIcon]}
+                activeOpacity={0.8}
+                onPress={handleGrantPermission}
+                disabled={checkingPermission}
+              >
+                <Text style={styles.permissionAllowBtnText}>
+                  {checkingPermission ? 'Checking...' : 'Allow'}
+                </Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </Modal>
+
       </ScrollView>
     </SafeAreaView>
   );
@@ -279,7 +372,7 @@ const styles = StyleSheet.create({
   storageCardLeft: {
     flex: 1,
     zIndex: 2,
-    paddingRight: 110, // Prevent overlap with the absolute positioned illustration
+    paddingRight: 110,
   },
   storageTitle: {
     fontSize: 16,
@@ -381,6 +474,58 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontFamily: 'Poppins-Regular',
     color: '#888888',
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.6)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 24,
+  },
+  permissionModalBox: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 24,
+    width: '100%',
+    padding: 32,
+    alignItems: 'center',
+    elevation: 10,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 6,
+  },
+  permissionIll: {
+    marginBottom: 24,
+  },
+  permissionTitle: {
+    fontSize: 20,
+    fontFamily: 'Poppins-SemiBold',
+    fontWeight: '700',
+    color: '#333333',
+    marginBottom: 12,
+    textAlign: 'center',
+  },
+  permissionDesc: {
+    fontSize: 13,
+    fontFamily: 'Poppins-Regular',
+    color: '#666666',
+    textAlign: 'center',
+    lineHeight: 22,
+    marginBottom: 32,
+    paddingHorizontal: 10,
+  },
+  permissionAllowBtn: {
+    backgroundColor: '#43A047',
+    borderRadius: 30,
+    paddingVertical: 14,
+    width: '100%',
+    alignItems: 'center',
+  },
+  permissionAllowBtnText: {
+    color: '#FFFFFF',
+    fontSize: 15,
+    fontFamily: 'Poppins-SemiBold',
+    fontWeight: '600',
   },
 });
 

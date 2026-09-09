@@ -22,10 +22,7 @@ export const SplashScreen = ({ navigation }) => {
       const startTime = Date.now();
 
       try {
-        const [hasLaunched, isPermissionGranted] = await Promise.all([
-          storageService.getHasLaunched(),
-          permissionsService.checkStoragePermission(),
-        ]);
+        const hasLaunched = await storageService.getHasLaunched();
 
         const elapsedTime = Date.now() - startTime;
         const remainingTime = Math.max(0, 2200 - elapsedTime);
@@ -33,14 +30,11 @@ export const SplashScreen = ({ navigation }) => {
         setTimeout(() => {
           if (!isMounted) return;
 
-          if (!isPermissionGranted) {
-            // Permission not granted -> show Permissions screen
-            navigation.replace('Permissions');
-          } else if (!hasLaunched) {
-            // First time launch + permission granted -> show Onboarding
+          if (!hasLaunched) {
+            // First time launch -> show Onboarding
             navigation.replace('Onboarding');
           } else {
-            // Subsequent launch + permission already granted -> directly to Home!
+            // Subsequent launch -> directly to Home
             navigation.replace('Home');
           }
         }, remainingTime);
@@ -48,7 +42,7 @@ export const SplashScreen = ({ navigation }) => {
         console.error('Error during splash check:', error);
         setTimeout(() => {
           if (isMounted) {
-            navigation.replace('Permissions');
+            navigation.replace('Home');
           }
         }, 2200);
       }
