@@ -151,6 +151,42 @@ const VideoThumbnail = React.memo(({ path, name }) => {
   );
 });
 
+const ApkIconThumbnail = React.memo(({ path }) => {
+  const [iconUri, setIconUri] = useState(null);
+
+  useEffect(() => {
+    let isMounted = true;
+    if (
+      NativeModules.ManageStorageModule &&
+      NativeModules.ManageStorageModule.getApkIcon &&
+      path
+    ) {
+      NativeModules.ManageStorageModule.getApkIcon(path)
+        .then((uri) => {
+          if (isMounted && uri) {
+            setIconUri(uri);
+          }
+        })
+        .catch(() => { });
+    }
+    return () => {
+      isMounted = false;
+    };
+  }, [path]);
+
+  if (iconUri) {
+    return (
+      <Image
+        source={{ uri: iconUri }}
+        style={styles.apkThumbnailImage}
+        resizeMode="cover"
+      />
+    );
+  }
+
+  return <APKIcon width={40} height={40} />;
+});
+
 export const CategoryListScreen = ({ route, navigation }) => {
   const { categoryName = 'Files', files = [] } = route.params || {};
 
@@ -577,7 +613,8 @@ export const CategoryListScreen = ({ route, navigation }) => {
     const isCompressed = categoryName === 'Compressed';
     const isDocument = categoryName === 'Documents';
     const isAudio = categoryName === 'Audios' || categoryName === 'Audio';
-    const useSpecialCard = isCompressed || isDocument || isImg || isAudio || isVid;
+    const isApk = categoryName === 'APK' || categoryName === 'Apk';
+    const useSpecialCard = isCompressed || isDocument || isImg || isAudio || isVid || isApk;
     const isSelected = selectedPaths.has(item.path);
 
     return (
@@ -608,6 +645,10 @@ export const CategoryListScreen = ({ route, navigation }) => {
         {/* Render Thumbnail / Icon */}
         {isVid ? (
           <VideoThumbnail path={item.path} name={item.name} />
+        ) : isApk ? (
+          <View style={styles.compressedIconContainer}>
+            <ApkIconThumbnail path={item.path} />
+          </View>
         ) : useSpecialCard ? (
           <View style={styles.compressedIconContainer}>
             {isAudio ? (
@@ -663,7 +704,9 @@ export const CategoryListScreen = ({ route, navigation }) => {
     categoryName === 'Audios' ||
     categoryName === 'Audio' ||
     categoryName === 'Videos' ||
-    categoryName === 'Video';
+    categoryName === 'Video' ||
+    categoryName === 'APK' ||
+    categoryName === 'Apk';
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -703,6 +746,8 @@ export const CategoryListScreen = ({ route, navigation }) => {
                     ? 'Audio'
                     : categoryName === 'Videos' || categoryName === 'Video'
                     ? 'Video'
+                    : categoryName === 'APK' || categoryName === 'Apk'
+                    ? 'APK'
                     : categoryName === 'Documents'
                     ? 'Document'
                     : categoryName === 'Images'
@@ -1052,6 +1097,10 @@ export const CategoryListScreen = ({ route, navigation }) => {
                       if (isVideoFile(selectedDetailFile.name)) {
                         return <VideoThumbnail path={selectedDetailFile.path} name={selectedDetailFile.name} />;
                       }
+                      const ext = getExtension(selectedDetailFile.name);
+                      if (ext === '.apk') {
+                        return <ApkIconThumbnail path={selectedDetailFile.path} />;
+                      }
                       const IconComp = getFileIcon(selectedDetailFile.name);
                       return <IconComp width={40} height={40} />;
                     })()
@@ -1181,6 +1230,11 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     fontSize: 13,
     fontFamily: 'Poppins-Medium',
+  apkThumbnailImage: {
+    width: 40,
+    height: 40,
+    borderRadius: 10,
+    backgroundColor: '#F0F0F0',
   },
   videoCardContainer: {
     width: 44,

@@ -251,4 +251,72 @@ class ManageStorageModule(private val reactContext: ReactApplicationContext) :
             }
         }.start()
     }
+
+    @ReactMethod
+    fun getApkIcon(apkPath: String, promise: Promise) {
+        var isResolved = false
+        val safeResolve: (String?) -> Unit = { uri ->
+            if (!isResolved) {
+                isResolved = true
+                try {
+                    promise.resolve(uri)
+                } catch (t: Throwable) {}
+            }
+        }
+
+        Thread {
+            try {
+                val cleanPath = if (apkPath.startsWith("file://")) {
+                    apkPath.substring(7)
+                } else {
+                    apkPath
+                }
+
+                val file = File(cleanPath)
+                if (!file.exists() || file.length() <= 0) {
+                    safeResolve(null)
+                    return@Thread
+                }
+
+                val safeHash = Math.abs(cleanPath.hashCode())
+                val iconFileName = "apk_icon_" + safeHash + ".png"
+                val iconFile = File(reactContext.cacheDir, iconFileName)
+                if (iconFile.exists() && iconFile.length() > 0) {
+                    safeResolve("file://" + iconFile.absolutePath)
+                    return@Thread
+                }
+
+                val pm = reactContext.packageManager
+                val info = pm.getPackageArchiveInfo(cleanPath, 0)
+                if (info != null) {
+                    info.applicationInfo.sourceDir = cleanPath
+                    info.applicationInfo.publicSourceDir = cleanPath
+                    val drawable = info.applicationInfo.loadIcon(pm)
+                    if (drawable != null) {
+                        val bitmap = if (drawable is android.graphics.drawable.BitmapDrawable) {
+                            drawable.bitmap
+                        } else {
+                            val w = Math.max(1, drawable.intrinsicWidth)
+                            val h = Math.max(1, drawable.intrinsicHeight)
+                            val b = Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888)
+                            val canvas = android.graphics.Canvas(b)
+                            drawable.setBounds(0, 0, canvas.width, canvas.height)
+                            drawable.draw(canvas)
+                            b
+                        }
+
+                        val out = FileOutputStream(iconFile)
+                        bitmap.compress(Bitmap.CompressFormat.PNG, 100, out)
+                        out.flush()
+                        out.close()
+                        safeResolve("file://" + iconFile.absolutePath)
+                        return@Thread
+                    }
+                }
+                safeResolve(null)
+            } catch (t: Throwable) {
+                safeResolve(null)
+            }
+        }.start()
+    }
 }
