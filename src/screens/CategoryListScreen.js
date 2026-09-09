@@ -60,6 +60,8 @@ const VIDEO_EXTENSIONS = [
   '.flv',
   '.wmv',
 ];
+const AUDIO_EXTENSIONS = ['.mp3', '.wav', '.aac', '.m4a', '.flac', '.ogg', '.wma'];
+const DOCUMENT_EXTENSIONS = ['.pdf', '.doc', '.docx', '.txt', '.xls', '.xlsx', '.ppt', '.pptx', '.csv'];
 
 const getExtension = (fileName = '') => {
   if (!fileName || typeof fileName !== 'string') return '';
