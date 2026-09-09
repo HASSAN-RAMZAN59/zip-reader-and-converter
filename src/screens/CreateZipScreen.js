@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -9,15 +9,103 @@ import {
   Alert,
   SafeAreaView,
   StatusBar,
+  Modal,
+  Image,
+  ActivityIndicator,
+  DeviceEventEmitter,
 } from 'react-native';
 import DocumentPicker from 'react-native-document-picker';
 import { createZipArchive } from '../services/ZipService';
 
-export const CreateZipScreen = ({ navigation }) => {
-  const [archiveName, setArchiveName] = useState('');
+// Import SVG Assets
+import CompressedIcon from '../assets/home/Background.svg';
+import DocumentsIcon from '../assets/home/Background (2).svg';
+import ImagesIcon from '../assets/home/Background (3).svg';
+import AudioIcon from '../assets/home/Background (4).svg';
+import VideoIcon from '../assets/home/Background (5).svg';
+import APKIcon from '../assets/home/Background (6).svg';
+import DefaultFileIcon from '../assets/home/Background (1).svg';
+
+const IMAGE_EXTENSIONS = ['.png', '.jpg', '.jpeg', '.webp', '.heic', '.gif', '.bmp', '.svg'];
+const VIDEO_EXTENSIONS = ['.mp4', '.mkv', '.avi', '.mov', '.3gp', '.webm', '.flv'];
+const AUDIO_EXTENSIONS = ['.mp3', '.wav', '.aac', '.m4a', '.flac', '.ogg'];
+const COMPRESSED_EXTENSIONS = ['.zip', '.rar', '.7z', '.tar', '.gz'];
+const DOCUMENT_EXTENSIONS = ['.pdf', '.doc', '.docx', '.txt', '.xls', '.xlsx', '.ppt', '.pptx'];
+
+const getExtension = (fileName = '') => {
+  if (!fileName || typeof fileName !== 'string') return '';
+  const lastDot = fileName.lastIndexOf('.');
+  if (lastDot === -1) return '';
+  return fileName.substring(lastDot).toLowerCase();
+};
+
+const FileItemIcon = ({ item }) => {
+  const name = item?.name || '';
+  const ext = getExtension(name);
+
+  if (IMAGE_EXTENSIONS.includes(ext)) {
+    if (item?.path) {
+      const uri = item.path.startsWith('file://') ? item.path : `file://${item.path}`;
+      return (
+        <Image
+          source={{ uri }}
+          style={styles.itemThumbnail}
+          resizeMode="cover"
+        />
+      );
+    }
+    return <ImagesIcon width={40} height={40} />;
+  }
+
+  if (VIDEO_EXTENSIONS.includes(ext)) {
+    return <VideoIcon width={40} height={40} />;
+  }
+
+  if (AUDIO_EXTENSIONS.includes(ext)) {
+    return <AudioIcon width={40} height={40} />;
+  }
+
+  if (COMPRESSED_EXTENSIONS.includes(ext)) {
+    return <CompressedIcon width={40} height={40} />;
+  }
+
+  if (DOCUMENT_EXTENSIONS.includes(ext)) {
+    return <DocumentsIcon width={40} height={40} />;
+  }
+
+  if (ext === '.apk') {
+    return <APKIcon width={40} height={40} />;
+  }
+
+  return <DefaultFileIcon width={40} height={40} />;
+};
+
+export const CreateZipScreen = ({ route, navigation }) => {
+  const initialFiles = route?.params?.initialFiles || [];
+  const defaultNameParam = route?.params?.defaultName || 'My_Archive.zip';
+
+  const [archiveName, setArchiveName] = useState(defaultNameParam);
+  const [compressionLevel, setCompressionLevel] = useState('Standrad');
   const [password, setPassword] = useState('');
-  const [selectedFiles, setSelectedFiles] = useState([]);
+  const [selectedFiles, setSelectedFiles] = useState(initialFiles);
   const [isCompressing, setIsCompressing] = useState(false);
+  const [showLevelModal, setShowLevelModal] = useState(false);
+
+  const compressionLevels = [
+    { label: 'Standrad', value: 'Standrad' },
+    { label: 'Fast', value: 'Fast' },
+    { label: 'Maximum', value: 'Maximum' },
+    { label: 'Store (No Compression)', value: 'Store' },
+  ];
+
+  useEffect(() => {
+    if (route?.params?.initialFiles && route.params.initialFiles.length > 0) {
+      setSelectedFiles(route.params.initialFiles);
+    }
+    if (route?.params?.defaultName) {
+      setArchiveName(route.params.defaultName);
+    }
+  }, [route?.params?.initialFiles, route?.params?.defaultName]);
 
   const handlePickFiles = async () => {
     try {
@@ -28,18 +116,15 @@ export const CreateZipScreen = ({ navigation }) => {
       });
 
       if (results && results.length > 0) {
-        // Merge or replace selected files
         setSelectedFiles((prev) => {
           const newMap = new Map();
-          prev.forEach((f) => newMap.set(f.name + f.size, f));
-          results.forEach((f) => newMap.set(f.name + f.size, f));
+          prev.forEach((f) => newMap.set((f.name || '') + (f.size || 0), f));
+          results.forEach((f) => newMap.set((f.name || '') + (f.size || 0), f));
           return Array.from(newMap.values());
         });
       }
     } catch (err) {
-      if (DocumentPicker.isCancel(err)) {
-        // User cancelled file picker
-      } else {
+      if (!DocumentPicker.isCancel(err)) {
         console.error('DocumentPicker error:', err);
         Alert.alert('Error', 'Failed to pick files.');
       }
@@ -66,6 +151,9 @@ export const CreateZipScreen = ({ navigation }) => {
 
     try {
       const result = await createZipArchive(selectedFiles, trimmedName, password);
+
+      DeviceEventEmitter.emit('ZIP_CREATED', result);
+
       Alert.alert(
         'Zip Created Successfully!',
         `Saved to: ${result.path}\n\nArchive Name: ${result.name}`,
@@ -73,9 +161,7 @@ export const CreateZipScreen = ({ navigation }) => {
           {
             text: 'OK',
             onPress: () => {
-              setArchiveName('');
-              setPassword('');
-              setSelectedFiles([]);
+              navigation.goBack();
             },
           },
         ]
@@ -89,28 +175,38 @@ export const CreateZipScreen = ({ navigation }) => {
   };
 
   const formatFileSize = (bytes) => {
-    if (!bytes || bytes === 0) return '0 B';
+    const num = Number(bytes);
+    if (!num || isNaN(num) || num <= 0) return '0 B';
     const k = 1024;
     const sizes = ['B', 'KB', 'MB', 'GB'];
-    const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
+    const i = Math.floor(Math.log(num) / Math.log(k));
+    const val = num / Math.pow(k, i);
+    return (val % 1 === 0 ? val.toFixed(0) : val.toFixed(1)) + ' ' + sizes[i];
   };
+
+  const formattedFileCount = String(selectedFiles.length).padStart(2, '0');
 
   const renderFileItem = ({ item, index }) => (
     <View style={styles.fileRow}>
+      <View style={styles.iconContainer}>
+        <FileItemIcon item={item} />
+      </View>
+
       <View style={styles.fileInfo}>
         <Text style={styles.fileName} numberOfLines={1} ellipsizeMode="middle">
-          {item.name}
+          {item.name || 'Unnamed File'}
         </Text>
         <Text style={styles.fileSize}>{formatFileSize(item.size)}</Text>
       </View>
+
       <TouchableOpacity
         style={styles.removeButton}
         activeOpacity={0.7}
         onPress={() => handleRemoveFile(index)}
         disabled={isCompressing}
+        hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
       >
-        <Text style={styles.removeButtonText}>Remove</Text>
+        <Text style={styles.removeButtonText}>✕</Text>
       </TouchableOpacity>
     </View>
   );
@@ -119,94 +215,166 @@ export const CreateZipScreen = ({ navigation }) => {
     <SafeAreaView style={styles.safeArea}>
       <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
       <View style={styles.container}>
-        {/* Header */}
-        <View style={styles.header}>
+        
+        {/* Top Header */}
+        <View style={styles.topHeader}>
           <TouchableOpacity
-            style={styles.backButton}
+            style={styles.backBtn}
             activeOpacity={0.7}
             onPress={() => navigation.goBack()}
             disabled={isCompressing}
           >
-            <Text style={styles.backButtonText}>{'< Back'}</Text>
+            <Text style={styles.backBtnIcon}>‹</Text>
           </TouchableOpacity>
           <Text style={styles.headerTitle}>Create New Zip</Text>
         </View>
 
-        {/* Inputs */}
-        <View style={styles.inputSection}>
-          <Text style={styles.inputLabel}>Archive Name</Text>
-          <TextInput
-            style={styles.textInput}
-            placeholder="e.g. my_files.zip"
-            placeholderTextColor="#888888"
-            value={archiveName}
-            onChangeText={setArchiveName}
-            editable={!isCompressing}
-            autoCapitalize="none"
-          />
-
-          <Text style={styles.inputLabel}>Optional Password</Text>
-          <TextInput
-            style={styles.textInput}
-            placeholder="Enter password (optional)"
-            placeholderTextColor="#888888"
-            value={password}
-            onChangeText={setPassword}
-            editable={!isCompressing}
-            secureTextEntry={false}
-            autoCapitalize="none"
-          />
-        </View>
-
-        {/* File Picker Section */}
-        <View style={styles.pickerSection}>
-          <TouchableOpacity
-            style={[styles.pickerButton, isCompressing && styles.disabledButton]}
-            activeOpacity={0.7}
-            onPress={handlePickFiles}
-            disabled={isCompressing}
-          >
-            <Text style={styles.pickerButtonText}>Select Files to Compress</Text>
-          </TouchableOpacity>
-
-          <Text style={styles.subTitle}>
-            Selected Files ({selectedFiles.length})
-          </Text>
-        </View>
-
-        {/* Selected Files List */}
+        {/* Content Area */}
         <FlatList
           data={selectedFiles}
           keyExtractor={(item, index) => `${item.name}-${index}`}
           renderItem={renderFileItem}
           contentContainerStyle={styles.listContent}
+          showsVerticalScrollIndicator={false}
+          ListHeaderComponent={
+            <View style={styles.formContainer}>
+              {/* Archive Name */}
+              <View style={styles.inputGroup}>
+                <Text style={styles.inputLabel}>Archive Name</Text>
+                <TextInput
+                  style={styles.textInput}
+                  placeholder="My_Archive.zip"
+                  placeholderTextColor="#A0AEC0"
+                  value={archiveName}
+                  onChangeText={setArchiveName}
+                  editable={!isCompressing}
+                  autoCapitalize="none"
+                />
+              </View>
+
+              {/* Compression Level */}
+              <View style={styles.inputGroup}>
+                <Text style={styles.inputLabel}>Compression Level</Text>
+                <TouchableOpacity
+                  style={styles.dropdownInput}
+                  activeOpacity={0.7}
+                  onPress={() => setShowLevelModal(true)}
+                  disabled={isCompressing}
+                >
+                  <Text style={styles.dropdownText}>{compressionLevel}</Text>
+                  <Text style={styles.dropdownArrow}>▼</Text>
+                </TouchableOpacity>
+              </View>
+
+              {/* Optional Password */}
+              <View style={styles.inputGroup}>
+                <Text style={styles.inputLabel}>Optional Password</Text>
+                <TextInput
+                  style={styles.textInput}
+                  placeholder="Enter password (optional )"
+                  placeholderTextColor="#A0AEC0"
+                  value={password}
+                  onChangeText={setPassword}
+                  editable={!isCompressing}
+                  secureTextEntry={false}
+                  autoCapitalize="none"
+                />
+              </View>
+
+              {/* Selected Files Section Header */}
+              <View style={styles.sectionHeaderRow}>
+                <Text style={styles.sectionTitle}>
+                  Selected Files ( {formattedFileCount} )
+                </Text>
+              </View>
+            </View>
+          }
           ListEmptyComponent={
             <View style={styles.emptyContainer}>
               <Text style={styles.emptyText}>No files selected yet.</Text>
+              <TouchableOpacity
+                style={styles.emptyAddBtn}
+                onPress={handlePickFiles}
+                activeOpacity={0.8}
+              >
+                <Text style={styles.emptyAddBtnText}>+ Select Files</Text>
+              </TouchableOpacity>
             </View>
           }
         />
 
-        {/* Action Button & Status */}
-        <View style={styles.footerSection}>
+        {/* Bottom Action Footer */}
+        <View style={styles.bottomBar}>
           {isCompressing && (
-            <Text style={styles.compressingText}>Compressing...</Text>
+            <View style={styles.loadingRow}>
+              <ActivityIndicator size="small" color="#0F7B39" />
+              <Text style={styles.compressingText}>Compressing files...</Text>
+            </View>
           )}
 
-          <TouchableOpacity
-            style={[
-              styles.compressButton,
-              isCompressing && styles.disabledButton,
-            ]}
-            activeOpacity={0.7}
-            onPress={handleCompress}
-            disabled={isCompressing}
-          >
-            <Text style={styles.compressButtonText}>
-              {isCompressing ? 'Compressing...' : 'Compress Now'}
-            </Text>
-          </TouchableOpacity>
+          <View style={styles.buttonRow}>
+            <TouchableOpacity
+              style={[styles.pillBtn, styles.greenBtn, isCompressing && styles.disabledBtn]}
+              activeOpacity={0.8}
+              onPress={handlePickFiles}
+              disabled={isCompressing}
+            >
+              <Text style={styles.pillBtnText}>Add More</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[styles.pillBtn, styles.greenBtn, isCompressing && styles.disabledBtn]}
+              activeOpacity={0.8}
+              onPress={handleCompress}
+              disabled={isCompressing}
+            >
+              <Text style={styles.pillBtnText}>
+                {isCompressing ? 'Compressing...' : 'Compress Now'}
+              </Text>
+            </TouchableOpacity>
+          </View>
         </View>
+
+        {/* Compression Level Picker Modal */}
+        <Modal
+          visible={showLevelModal}
+          transparent={true}
+          animationType="fade"
+          onRequestClose={() => setShowLevelModal(false)}
+        >
+          <TouchableOpacity
+            style={styles.modalOverlay}
+            activeOpacity={1}
+            onPress={() => setShowLevelModal(false)}
+          >
+            <View style={styles.levelModalBox}>
+              <Text style={styles.levelModalTitle}>Select Compression Level</Text>
+              {compressionLevels.map((lvl) => (
+                <TouchableOpacity
+                  key={lvl.value}
+                  style={[
+                    styles.levelOption,
+                    compressionLevel === lvl.value && styles.selectedLevelOption,
+                  ]}
+                  onPress={() => {
+                    setCompressionLevel(lvl.value);
+                    setShowLevelModal(false);
+                  }}
+                >
+                  <Text
+                    style={[
+                      styles.levelOptionText,
+                      compressionLevel === lvl.value && styles.selectedLevelOptionText,
+                    ]}
+                  >
+                    {lvl.label}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+          </TouchableOpacity>
+        </Modal>
+
       </View>
     </SafeAreaView>
   );
@@ -219,156 +387,251 @@ const styles = StyleSheet.create({
   },
   container: {
     flex: 1,
-    paddingHorizontal: 16,
-    paddingTop: 16,
+    backgroundColor: '#FFFFFF',
   },
-  header: {
+  topHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: '#000000',
+    paddingHorizontal: 20,
+    paddingTop: 16,
     paddingBottom: 12,
-  },
-  backButton: {
-    borderWidth: 1,
-    borderColor: '#000000',
     backgroundColor: '#FFFFFF',
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    marginRight: 12,
   },
-  backButtonText: {
-    fontSize: 14,
-    fontFamily: 'Poppins-Medium',
-    color: '#000000',
+  backBtn: {
+    marginRight: 12,
+    padding: 4,
+  },
+  backBtnIcon: {
+    fontSize: 28,
+    lineHeight: 28,
+    color: '#333333',
+    fontWeight: '400',
   },
   headerTitle: {
-    fontSize: 20,
-    fontFamily: 'Poppins-Medium',
-    color: '#000000',
+    fontSize: 22,
+    fontFamily: 'Poppins-SemiBold',
+    fontWeight: '700',
+    color: '#2D3748',
   },
-  inputSection: {
-    marginBottom: 14,
+  listContent: {
+    paddingHorizontal: 20,
+    paddingBottom: 20,
+  },
+  formContainer: {
+    marginTop: 8,
+  },
+  inputGroup: {
+    marginBottom: 16,
   },
   inputLabel: {
     fontSize: 14,
     fontFamily: 'Poppins-Medium',
-    color: '#000000',
-    marginBottom: 6,
+    fontWeight: '600',
+    color: '#4A5568',
+    marginBottom: 8,
   },
   textInput: {
-    borderWidth: 1,
-    borderColor: '#000000',
-    backgroundColor: '#FFFFFF',
-    paddingHorizontal: 12,
-    paddingVertical: 10,
+    backgroundColor: '#F2F4F7',
+    borderRadius: 14,
+    paddingHorizontal: 16,
+    paddingVertical: 14,
     fontSize: 14,
     fontFamily: 'Poppins-Regular',
-    color: '#000000',
-    marginBottom: 12,
+    color: '#2D3748',
   },
-  pickerSection: {
-    marginBottom: 10,
-  },
-  pickerButton: {
-    borderWidth: 1,
-    borderColor: '#000000',
-    backgroundColor: '#FFFFFF',
-    paddingVertical: 12,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 12,
-  },
-  pickerButtonText: {
-    fontSize: 15,
-    fontFamily: 'Poppins-Medium',
-    color: '#000000',
-  },
-  subTitle: {
-    fontSize: 15,
-    fontFamily: 'Poppins-Medium',
-    color: '#000000',
-    marginBottom: 6,
-  },
-  listContent: {
-    flexGrow: 1,
-    paddingBottom: 16,
-  },
-  fileRow: {
-    borderWidth: 1,
-    borderColor: '#000000',
-    backgroundColor: '#FFFFFF',
-    padding: 10,
-    marginBottom: 8,
+  dropdownInput: {
+    backgroundColor: '#F2F4F7',
+    borderRadius: 14,
+    paddingHorizontal: 16,
+    paddingVertical: 14,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
   },
+  dropdownText: {
+    fontSize: 14,
+    fontFamily: 'Poppins-Regular',
+    color: '#2D3748',
+  },
+  dropdownArrow: {
+    fontSize: 10,
+    color: '#4A5568',
+  },
+  sectionHeaderRow: {
+    marginTop: 8,
+    marginBottom: 12,
+  },
+  sectionTitle: {
+    fontSize: 14,
+    fontFamily: 'Poppins-SemiBold',
+    fontWeight: '600',
+    color: '#4A5568',
+  },
+  fileRow: {
+    backgroundColor: '#F2F4F7',
+    borderRadius: 14,
+    paddingHorizontal: 12,
+    paddingVertical: 12,
+    marginBottom: 10,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  iconContainer: {
+    width: 40,
+    height: 40,
+    borderRadius: 10,
+    overflow: 'hidden',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 12,
+  },
+  itemThumbnail: {
+    width: 40,
+    height: 40,
+    borderRadius: 10,
+  },
   fileInfo: {
     flex: 1,
-    marginRight: 8,
+    marginRight: 12,
   },
   fileName: {
-    fontSize: 13,
+    fontSize: 14,
     fontFamily: 'Poppins-Medium',
-    color: '#000000',
+    fontWeight: '500',
+    color: '#2D3748',
   },
   fileSize: {
-    fontSize: 11,
+    fontSize: 12,
     fontFamily: 'Poppins-Regular',
-    color: '#000000',
+    color: '#718096',
     marginTop: 2,
   },
   removeButton: {
-    borderWidth: 1,
-    borderColor: '#000000',
-    paddingHorizontal: 8,
-    paddingVertical: 4,
+    padding: 6,
   },
   removeButtonText: {
-    fontSize: 11,
-    fontFamily: 'Poppins-Medium',
-    color: '#000000',
+    fontSize: 14,
+    color: '#4A5568',
+    fontWeight: '600',
   },
   emptyContainer: {
-    paddingVertical: 24,
-    alignItems: 'center',
-  },
-  emptyText: {
-    fontSize: 13,
-    fontFamily: 'Poppins-Regular',
-    color: '#888888',
-  },
-  footerSection: {
-    paddingVertical: 10,
-    borderTopWidth: 1,
-    borderTopColor: '#000000',
-  },
-  compressingText: {
-    fontSize: 13,
-    fontFamily: 'Poppins-Regular',
-    color: '#000000',
-    textAlign: 'center',
-    marginBottom: 8,
-    fontStyle: 'italic',
-  },
-  compressButton: {
-    borderWidth: 1,
-    borderColor: '#000000',
-    backgroundColor: '#FFFFFF',
-    paddingVertical: 14,
+    paddingVertical: 32,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  compressButtonText: {
-    fontSize: 15,
-    fontFamily: 'Poppins-Medium',
-    color: '#000000',
+  emptyText: {
+    fontSize: 14,
+    fontFamily: 'Poppins-Regular',
+    color: '#A0AEC0',
+    marginBottom: 12,
   },
-  disabledButton: {
+  emptyAddBtn: {
+    backgroundColor: '#E2E8F0',
+    borderRadius: 20,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+  },
+  emptyAddBtnText: {
+    fontSize: 13,
+    fontFamily: 'Poppins-Medium',
+    color: '#4A5568',
+  },
+  bottomBar: {
+    backgroundColor: '#FFFFFF',
+    paddingHorizontal: 20,
+    paddingTop: 12,
+    paddingBottom: 24,
+    borderTopWidth: 1,
+    borderTopColor: '#F0F0F0',
+  },
+  loadingRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 10,
+  },
+  compressingText: {
+    fontSize: 13,
+    fontFamily: 'Poppins-Medium',
+    color: '#0F7B39',
+    marginLeft: 8,
+  },
+  buttonRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+  pillBtn: {
+    flex: 1,
+    paddingVertical: 14,
+    borderRadius: 28,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginHorizontal: 5,
+    elevation: 3,
+    shadowColor: '#2E7D32',
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+  },
+  greenBtn: {
+    backgroundColor: '#43A047',
+  },
+  pillBtnText: {
+    color: '#FFFFFF',
+    fontSize: 15,
+    fontFamily: 'Poppins-SemiBold',
+    fontWeight: '600',
+  },
+  disabledBtn: {
     opacity: 0.5,
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.4)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 24,
+  },
+  levelModalBox: {
+    width: '100%',
+    backgroundColor: '#FFFFFF',
+    borderRadius: 20,
+    padding: 20,
+    elevation: 8,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 6,
+  },
+  levelModalTitle: {
+    fontSize: 16,
+    fontFamily: 'Poppins-SemiBold',
+    fontWeight: '600',
+    color: '#2D3748',
+    marginBottom: 16,
+    textAlign: 'center',
+  },
+  levelOption: {
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderRadius: 12,
+    marginBottom: 8,
+    backgroundColor: '#F7FAFC',
+  },
+  selectedLevelOption: {
+    backgroundColor: '#E8F5E9',
+  },
+  levelOptionText: {
+    fontSize: 14,
+    fontFamily: 'Poppins-Medium',
+    color: '#4A5568',
+  },
+  selectedLevelOptionText: {
+    color: '#2E7D32',
+    fontWeight: '600',
   },
 });
 
 export default CreateZipScreen;
+

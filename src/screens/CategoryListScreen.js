@@ -285,12 +285,16 @@ export const CategoryListScreen = ({ route, navigation }) => {
       );
       return;
     }
-    const defaultName = `${categoryName}_Archive_${Date.now()
-      .toString()
-      .slice(-4)}`;
-    setCompressArchiveName(defaultName);
-    setCompressPassword('');
-    setCompressModalVisible(true);
+    const selectedFileObjects = validFiles.filter((f) =>
+      selectedPaths.has(f.path)
+    );
+    const defaultName = `${categoryName}_Archive.zip`;
+    setIsSelectionMode(false);
+    setSelectedPaths(new Set());
+    navigation.navigate('CreateZip', {
+      initialFiles: selectedFileObjects,
+      defaultName: defaultName,
+    });
   };
 
   const handlePerformCompression = async () => {
