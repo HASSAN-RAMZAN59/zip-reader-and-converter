@@ -187,6 +187,47 @@ const ApkIconThumbnail = React.memo(({ path }) => {
   return <APKIcon width={40} height={40} />;
 });
 
+const ItemIconThumbnail = React.memo(({ item }) => {
+  const name = item?.name || '';
+  const ext = getExtension(name);
+
+  if (ext === '.apk') {
+    return <ApkIconThumbnail path={item?.path} />;
+  }
+
+  if (IMAGE_EXTENSIONS.includes(ext)) {
+    if (item?.path) {
+      return (
+        <Image
+          source={{ uri: 'file://' + item.path }}
+          style={styles.imageThumbnailCard}
+          resizeMode="cover"
+          onError={() => { }}
+        />
+      );
+    }
+    return <ImagesIcon width={40} height={40} />;
+  }
+
+  if (VIDEO_EXTENSIONS.includes(ext)) {
+    return <VideoThumbnail path={item?.path} name={item?.name} />;
+  }
+
+  if (AUDIO_EXTENSIONS.includes(ext)) {
+    return <AudioRecordIcon width={40} height={40} />;
+  }
+
+  if (DOCUMENT_EXTENSIONS.includes(ext)) {
+    return <DocumentBlueIcon width={32} height={32} />;
+  }
+
+  if (COMPRESSED_EXTENSIONS.includes(ext)) {
+    return <FolderIcon width={32} height={32} />;
+  }
+
+  return <DefaultFileIcon width={32} height={32} />;
+});
+
 export const CategoryListScreen = ({ route, navigation }) => {
   const { categoryName = 'Files', files = [] } = route.params || {};
 
@@ -614,7 +655,8 @@ export const CategoryListScreen = ({ route, navigation }) => {
     const isDocument = categoryName === 'Documents';
     const isAudio = categoryName === 'Audios' || categoryName === 'Audio';
     const isApk = categoryName === 'APK' || categoryName === 'Apk';
-    const useSpecialCard = isCompressed || isDocument || isImg || isAudio || isVid || isApk;
+    const isDownload = categoryName === 'Download' || categoryName === 'Downloads';
+    const useSpecialCard = isCompressed || isDocument || isImg || isAudio || isVid || isApk || isDownload;
     const isSelected = selectedPaths.has(item.path);
 
     return (
@@ -643,32 +685,9 @@ export const CategoryListScreen = ({ route, navigation }) => {
         )}
 
         {/* Render Thumbnail / Icon */}
-        {isVid ? (
-          <VideoThumbnail path={item.path} name={item.name} />
-        ) : isApk ? (
+        {useSpecialCard ? (
           <View style={styles.compressedIconContainer}>
-            <ApkIconThumbnail path={item.path} />
-          </View>
-        ) : useSpecialCard ? (
-          <View style={styles.compressedIconContainer}>
-            {isAudio ? (
-              <AudioRecordIcon width={40} height={40} />
-            ) : isDocument ? (
-              <DocumentBlueIcon width={32} height={32} />
-            ) : isImg ? (
-              item.path ? (
-                <Image
-                  source={{ uri: 'file://' + item.path }}
-                  style={styles.imageThumbnailCard}
-                  resizeMode="cover"
-                  onError={() => { }}
-                />
-              ) : (
-                <FolderIcon width={32} height={32} />
-              )
-            ) : (
-              <FolderIcon width={32} height={32} />
-            )}
+            <ItemIconThumbnail item={item} />
           </View>
         ) : null}
 
@@ -706,7 +725,9 @@ export const CategoryListScreen = ({ route, navigation }) => {
     categoryName === 'Videos' ||
     categoryName === 'Video' ||
     categoryName === 'APK' ||
-    categoryName === 'Apk';
+    categoryName === 'Apk' ||
+    categoryName === 'Download' ||
+    categoryName === 'Downloads';
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -748,6 +769,8 @@ export const CategoryListScreen = ({ route, navigation }) => {
                     ? 'Video'
                     : categoryName === 'APK' || categoryName === 'Apk'
                     ? 'APK'
+                    : categoryName === 'Download' || categoryName === 'Downloads'
+                    ? 'Downloads'
                     : categoryName === 'Documents'
                     ? 'Document'
                     : categoryName === 'Images'
