@@ -98,7 +98,7 @@ const isVideoFile = (fileName = '') => {
   return VIDEO_EXTENSIONS.includes(ext);
 };
 
-const VideoThumbnail = React.memo(({ path }) => {
+const VideoThumbnail = React.memo(({ path, name }) => {
   const [thumbUri, setThumbUri] = useState(null);
 
   useEffect(() => {
@@ -121,24 +121,32 @@ const VideoThumbnail = React.memo(({ path }) => {
     };
   }, [path]);
 
-  if (thumbUri) {
-    return (
-      <View style={styles.thumbnailContainer}>
-        <Image
-          source={{ uri: thumbUri }}
-          style={styles.thumbnailImageCover}
-          resizeMode="cover"
-        />
-        <View style={styles.videoBadge}>
-          <Text style={styles.videoBadgeText}>▶</Text>
-        </View>
-      </View>
-    );
-  }
+  const imageSource = thumbUri
+    ? { uri: thumbUri }
+    : (path && (path.endsWith('.jpg') || path.endsWith('.jpeg') || path.endsWith('.png') || path.endsWith('.webp'))
+      ? { uri: 'file://' + path }
+      : null);
 
   return (
-    <View style={[styles.thumbnailImage, styles.thumbnailPlaceholder]}>
-      <Text style={styles.placeholderPlayIcon}>▶</Text>
+    <View style={styles.videoCardContainer}>
+      {imageSource ? (
+        <Image
+          source={imageSource}
+          style={styles.videoCardImage}
+          resizeMode="cover"
+        />
+      ) : (
+        <View style={styles.videoCardPlaceholder}>
+          <VideoIcon width={28} height={28} />
+        </View>
+      )}
+
+      {/* Play Icon Badge Overlay (Centered white play button as shown in screenshot) */}
+      <View style={styles.videoPlayOverlay}>
+        <View style={styles.playCircle}>
+          <Text style={styles.playIconTriangle}>▶</Text>
+        </View>
+      </View>
     </View>
   );
 });
@@ -565,11 +573,11 @@ export const CategoryListScreen = ({ route, navigation }) => {
     if (!item) return null;
 
     const isImg = categoryName === 'Images';
-    const isVid = categoryName === 'Videos';
+    const isVid = categoryName === 'Videos' || categoryName === 'Video';
     const isCompressed = categoryName === 'Compressed';
     const isDocument = categoryName === 'Documents';
     const isAudio = categoryName === 'Audios' || categoryName === 'Audio';
-    const useSpecialCard = isCompressed || isDocument || isImg || isAudio;
+    const useSpecialCard = isCompressed || isDocument || isImg || isAudio || isVid;
     const isSelected = selectedPaths.has(item.path);
 
     return (
@@ -597,8 +605,10 @@ export const CategoryListScreen = ({ route, navigation }) => {
           </View>
         )}
 
-        {/* Special Icon or Thumbnail for Compressed, Document, Images, or Audio */}
-        {useSpecialCard && (
+        {/* Render Thumbnail / Icon */}
+        {isVid ? (
+          <VideoThumbnail path={item.path} name={item.name} />
+        ) : useSpecialCard ? (
           <View style={styles.compressedIconContainer}>
             {isAudio ? (
               <AudioRecordIcon width={40} height={40} />
@@ -619,10 +629,7 @@ export const CategoryListScreen = ({ route, navigation }) => {
               <FolderIcon width={32} height={32} />
             )}
           </View>
-        )}
-
-        {/* Render Video Thumbnail (Only in Videos category) */}
-        {isVid && item.path ? <VideoThumbnail path={item.path} /> : null}
+        ) : null}
 
         {/* File Info */}
         <View style={useSpecialCard ? styles.compressedTextContainer : styles.fileDetails}>
@@ -654,7 +661,9 @@ export const CategoryListScreen = ({ route, navigation }) => {
     categoryName === 'Documents' ||
     categoryName === 'Images' ||
     categoryName === 'Audios' ||
-    categoryName === 'Audio';
+    categoryName === 'Audio' ||
+    categoryName === 'Videos' ||
+    categoryName === 'Video';
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -692,6 +701,8 @@ export const CategoryListScreen = ({ route, navigation }) => {
                 <Text style={styles.compressedHeaderTitle}>
                   {categoryName === 'Audios' || categoryName === 'Audio'
                     ? 'Audio'
+                    : categoryName === 'Videos' || categoryName === 'Video'
+                    ? 'Video'
                     : categoryName === 'Documents'
                     ? 'Document'
                     : categoryName === 'Images'
@@ -1167,6 +1178,52 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     fontSize: 13,
     fontFamily: 'Poppins-Medium',
+  },
+  videoCardContainer: {
+    width: 44,
+    height: 44,
+    borderRadius: 12,
+    overflow: 'hidden',
+    position: 'relative',
+    marginRight: 14,
+    backgroundColor: '#1E1E1E',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  videoCardImage: {
+    width: '100%',
+    height: '100%',
+    position: 'absolute',
+  },
+  videoCardPlaceholder: {
+    width: '100%',
+    height: '100%',
+    backgroundColor: '#2D3748',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  videoPlayOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.15)',
+  },
+  playCircle: {
+    width: 22,
+    height: 22,
+    borderRadius: 11,
+    backgroundColor: 'rgba(0, 0, 0, 0.45)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  playIconTriangle: {
+    fontSize: 10,
+    color: '#FFFFFF',
+    marginLeft: 2,
   },
   thumbnailContainer: {
     position: 'relative',
