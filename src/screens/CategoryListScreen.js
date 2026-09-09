@@ -14,6 +14,7 @@ import {
   DeviceEventEmitter,
   Image,
   NativeModules,
+  Share,
 } from 'react-native';
 import DocumentPicker from 'react-native-document-picker';
 import FolderIcon from '../assets/fi_12075662.svg';
@@ -378,6 +379,19 @@ export const CategoryListScreen = ({ route, navigation }) => {
         'Cannot Open File',
         'No suitable app found on device to open this file format.'
       );
+    }
+  };
+
+  const handleShareFile = async () => {
+    if (selectedDetailFile && selectedDetailFile.path) {
+      try {
+        await Share.share({
+          title: selectedDetailFile.name,
+          url: 'file://' + selectedDetailFile.path,
+        });
+      } catch (error) {
+        Alert.alert('Error', 'Failed to share file.');
+      }
     }
   };
 
@@ -959,25 +973,39 @@ export const CategoryListScreen = ({ route, navigation }) => {
           animationType="fade"
           onRequestClose={() => setDetailModalVisible(false)}
         >
-          <View style={styles.modalOverlay}>
-            <View style={styles.modalContent}>
-              <Text style={styles.modalTitle}>File Details</Text>
-              <Text style={styles.modalSubtitle} numberOfLines={2}>
+          <TouchableOpacity 
+            style={styles.modalOverlay} 
+            activeOpacity={1} 
+            onPressOut={() => setDetailModalVisible(false)}
+          >
+            <View style={styles.detailModalCard}>
+              <Text style={styles.detailModalTitle}>File Details</Text>
+              <Text style={styles.detailModalSubtitle} numberOfLines={1}>
                 {selectedDetailFile ? selectedDetailFile.name : ''}
               </Text>
 
-              <View style={styles.detailInfoBox}>
-                <Text style={styles.detailText}>
-                  Size: {selectedDetailFile ? formatFileSize(selectedDetailFile.size) : ''}
-                </Text>
-                <Text style={styles.detailText} numberOfLines={3}>
-                  Path: {selectedDetailFile ? selectedDetailFile.path : ''}
-                </Text>
+              <View style={styles.detailInfoBoxNew}>
+                <View style={styles.detailInfoIcon}>
+                  {selectedDetailFile ? (
+                    (() => {
+                      const IconComp = getFileIcon(selectedDetailFile.name);
+                      return <IconComp width={40} height={40} />;
+                    })()
+                  ) : null}
+                </View>
+                <View style={styles.detailInfoTextContainer}>
+                  <Text style={styles.detailInfoSizeText}>
+                    Size: {selectedDetailFile ? formatFileSize(selectedDetailFile.size) : ''}
+                  </Text>
+                  <Text style={styles.detailInfoPathText} numberOfLines={2}>
+                    Path: {selectedDetailFile ? selectedDetailFile.path : ''}
+                  </Text>
+                </View>
               </View>
 
               <TouchableOpacity
-                style={styles.modalButton}
-                activeOpacity={0.7}
+                style={styles.detailActionBtn}
+                activeOpacity={0.8}
                 onPress={() => {
                   if (selectedDetailFile && selectedDetailFile.path) {
                     setDetailModalVisible(false);
@@ -985,18 +1013,18 @@ export const CategoryListScreen = ({ route, navigation }) => {
                   }
                 }}
               >
-                <Text style={styles.modalButtonText}>Open File</Text>
+                <Text style={styles.detailActionBtnText}>Open File</Text>
               </TouchableOpacity>
 
               <TouchableOpacity
-                style={styles.cancelButton}
-                activeOpacity={0.7}
-                onPress={() => setDetailModalVisible(false)}
+                style={styles.detailActionBtn}
+                activeOpacity={0.8}
+                onPress={handleShareFile}
               >
-                <Text style={styles.cancelButtonText}>Cancel</Text>
+                <Text style={styles.detailActionBtnText}>Share File</Text>
               </TouchableOpacity>
             </View>
-          </View>
+          </TouchableOpacity>
         </Modal>
       </View>
     </SafeAreaView>
@@ -1500,6 +1528,78 @@ const styles = StyleSheet.create({
   detailsExtractBtnText: {
     color: '#FFFFFF',
     fontSize: 16,
+    fontFamily: 'Poppins-Medium',
+    fontWeight: '600',
+  },
+  // File Details Modal Styles (New UI)
+  detailModalCard: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 24,
+    padding: 24,
+    width: '100%',
+    alignItems: 'center',
+    elevation: 5,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+  },
+  detailModalTitle: {
+    fontSize: 18,
+    fontFamily: 'Poppins-SemiBold',
+    fontWeight: '700',
+    color: '#333333',
+    marginBottom: 4,
+  },
+  detailModalSubtitle: {
+    fontSize: 13,
+    fontFamily: 'Poppins-Regular',
+    color: '#666666',
+    marginBottom: 20,
+    textAlign: 'center',
+  },
+  detailInfoBoxNew: {
+    flexDirection: 'row',
+    backgroundColor: '#F4F5F7',
+    borderRadius: 16,
+    padding: 16,
+    width: '100%',
+    alignItems: 'center',
+    marginBottom: 24,
+  },
+  detailInfoIcon: {
+    marginRight: 16,
+  },
+  detailInfoTextContainer: {
+    flex: 1,
+  },
+  detailInfoSizeText: {
+    fontSize: 13,
+    fontFamily: 'Poppins-Medium',
+    color: '#333333',
+    marginBottom: 4,
+  },
+  detailInfoPathText: {
+    fontSize: 11,
+    fontFamily: 'Poppins-Regular',
+    color: '#888888',
+  },
+  detailActionBtn: {
+    backgroundColor: '#4CAF50',
+    borderRadius: 30,
+    paddingVertical: 14,
+    width: '100%',
+    alignItems: 'center',
+    marginBottom: 12,
+    elevation: 3,
+    shadowColor: '#4CAF50',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 3,
+  },
+  detailActionBtnText: {
+    color: '#FFFFFF',
+    fontSize: 15,
     fontFamily: 'Poppins-Medium',
     fontWeight: '600',
   },
