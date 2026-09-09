@@ -562,7 +562,7 @@ export const CategoryListScreen = ({ route, navigation }) => {
     const isVid = categoryName === 'Videos';
     const isCompressed = categoryName === 'Compressed';
     const isDocument = categoryName === 'Documents';
-    const useSpecialCard = isCompressed || isDocument;
+    const useSpecialCard = isCompressed || isDocument || isImg;
     const isSelected = selectedPaths.has(item.path);
 
     return (
@@ -590,26 +590,27 @@ export const CategoryListScreen = ({ route, navigation }) => {
           </View>
         )}
 
-        {/* Special Icon for Compressed or Document */}
-        {useSpecialCard && !isSelectionMode && (
+        {/* Special Icon or Thumbnail for Compressed, Document, or Images */}
+        {useSpecialCard && (
           <View style={styles.compressedIconContainer}>
             {isDocument ? (
               <DocumentBlueIcon width={32} height={32} />
+            ) : isImg ? (
+              item.path ? (
+                <Image
+                  source={{ uri: 'file://' + item.path }}
+                  style={styles.imageThumbnailCard}
+                  resizeMode="cover"
+                  onError={() => { }}
+                />
+              ) : (
+                <FolderIcon width={32} height={32} />
+              )
             ) : (
               <FolderIcon width={32} height={32} />
             )}
           </View>
         )}
-
-        {/* Render Image Thumbnail (Only in Images category) */}
-        {isImg && item.path ? (
-          <Image
-            source={{ uri: 'file://' + item.path }}
-            style={styles.thumbnailImage}
-            resizeMode="cover"
-            onError={() => { }}
-          />
-        ) : null}
 
         {/* Render Video Thumbnail (Only in Videos category) */}
         {isVid && item.path ? <VideoThumbnail path={item.path} /> : null}
@@ -624,7 +625,14 @@ export const CategoryListScreen = ({ route, navigation }) => {
 
         {/* More Icon (3 dots) */}
         {useSpecialCard && !isSelectionMode && (
-          <TouchableOpacity style={styles.moreButton} activeOpacity={0.7}>
+          <TouchableOpacity
+            style={styles.moreButton}
+            activeOpacity={0.7}
+            onPress={() => {
+              setSelectedDetailFile(item);
+              setDetailModalVisible(true);
+            }}
+          >
             <MoreVertIcon width={24} height={24} />
           </TouchableOpacity>
         )}
@@ -637,7 +645,7 @@ export const CategoryListScreen = ({ route, navigation }) => {
       <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
       <View style={styles.container}>
         {/* Header */}
-        <View style={(categoryName === 'Compressed' || categoryName === 'Documents') ? styles.compressedHeader : styles.header}>
+        <View style={(categoryName === 'Compressed' || categoryName === 'Documents' || categoryName === 'Images') ? styles.compressedHeader : styles.header}>
           {isSelectionMode ? (
             <>
               <TouchableOpacity
@@ -662,11 +670,11 @@ export const CategoryListScreen = ({ route, navigation }) => {
                 </Text>
               </TouchableOpacity>
             </>
-          ) : (categoryName === 'Compressed' || categoryName === 'Documents') ? (
+          ) : (categoryName === 'Compressed' || categoryName === 'Documents' || categoryName === 'Images') ? (
             <>
               <View>
                 <Text style={styles.compressedHeaderTitle}>
-                  {categoryName === 'Documents' ? 'Document' : 'Compressed'}
+                  {categoryName === 'Documents' ? 'Document' : categoryName === 'Images' ? 'Images' : 'Compressed'}
                 </Text>
                 <Text style={styles.compressedHeaderSubtitle}>Total Files ( {validFiles.length} )</Text>
               </View>
@@ -1226,6 +1234,12 @@ const styles = StyleSheet.create({
   },
   compressedIconContainer: {
     marginRight: 14,
+  },
+  imageThumbnailCard: {
+    width: 44,
+    height: 44,
+    borderRadius: 10,
+    backgroundColor: '#EAEAEA',
   },
   compressedTextContainer: {
     flex: 1,
