@@ -25,6 +25,7 @@ import AudioIcon from '../assets/home/Background (4).svg';
 import VideoIcon from '../assets/home/Background (5).svg';
 import APKIcon from '../assets/home/Background (6).svg';
 import DefaultFileIcon from '../assets/home/Background (1).svg';
+import AudioRecordIcon from '../assets/fi_1834342.svg';
 
 const IMAGE_EXTENSIONS = ['.png', '.jpg', '.jpeg', '.webp', '.heic', '.gif', '.bmp', '.svg'];
 const VIDEO_EXTENSIONS = ['.mp4', '.mkv', '.avi', '.mov', '.3gp', '.webm', '.flv'];
@@ -62,7 +63,7 @@ const FileItemIcon = ({ item }) => {
   }
 
   if (AUDIO_EXTENSIONS.includes(ext)) {
-    return <AudioIcon width={40} height={40} />;
+    return <AudioRecordIcon width={40} height={40} />;
   }
 
   if (COMPRESSED_EXTENSIONS.includes(ext)) {

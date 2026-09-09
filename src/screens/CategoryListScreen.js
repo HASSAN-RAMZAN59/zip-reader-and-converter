@@ -80,8 +80,8 @@ const getFileIcon = (fileName) => {
       return ImagesIcon;
     case '.mp4': case '.mkv': case '.avi': case '.mov':
       return VideoIcon;
-    case '.mp3': case '.wav': case '.aac':
-      return AudioIcon;
+    case '.mp3': case '.wav': case '.aac': case '.m4a': case '.flac': case '.ogg':
+      return AudioRecordIcon;
     case '.pdf': case '.doc': case '.docx': case '.txt': case '.xls':
       return DocumentsIcon;
     case '.apk':
