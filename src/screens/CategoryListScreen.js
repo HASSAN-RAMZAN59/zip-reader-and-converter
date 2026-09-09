@@ -280,6 +280,16 @@ export const CategoryListScreen = ({ route, navigation }) => {
     ? files.filter((f) => f && typeof f === 'object' && f.name)
     : [];
 
+  // Real-time Search State
+  const [isSearchActive, setIsSearchActive] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+
+  // Real-time Filtered Files List
+  const displayedFiles = validFiles.filter((item) => {
+    if (!searchQuery.trim()) return true;
+    return item?.name?.toLowerCase().includes(searchQuery.trim().toLowerCase());
+  });
+
   // Multi-Selection State (for Long-Press & Batch Zip Compression)
   const [isSelectionMode, setIsSelectionMode] = useState(false);
   const [selectedPaths, setSelectedPaths] = useState(new Set());
@@ -805,6 +815,27 @@ export const CategoryListScreen = ({ route, navigation }) => {
                 </Text>
               </TouchableOpacity>
             </>
+          ) : isSearchActive ? (
+            <View style={styles.searchHeaderContainer}>
+              <TextInput
+                style={styles.searchInput}
+                placeholder={`Search in ${categoryName}...`}
+                placeholderTextColor="#888888"
+                value={searchQuery}
+                onChangeText={setSearchQuery}
+                autoFocus={true}
+              />
+              <TouchableOpacity
+                style={styles.closeSearchButton}
+                activeOpacity={0.7}
+                onPress={() => {
+                  setIsSearchActive(false);
+                  setSearchQuery('');
+                }}
+              >
+                <Text style={styles.closeSearchText}>✕</Text>
+              </TouchableOpacity>
+            </View>
           ) : isSpecialHeaderCategory ? (
             <>
               <View>
@@ -825,9 +856,15 @@ export const CategoryListScreen = ({ route, navigation }) => {
                     ? 'Images'
                     : 'Compressed'}
                 </Text>
-                <Text style={styles.compressedHeaderSubtitle}>Total Files ( {validFiles.length} )</Text>
+                <Text style={styles.compressedHeaderSubtitle}>
+                  Total Files ( {displayedFiles.length} )
+                </Text>
               </View>
-              <TouchableOpacity style={styles.searchButton}>
+              <TouchableOpacity
+                style={styles.searchButton}
+                activeOpacity={0.7}
+                onPress={() => setIsSearchActive(true)}
+              >
                 <SearchIcon width={24} height={24} />
               </TouchableOpacity>
             </>
@@ -841,7 +878,7 @@ export const CategoryListScreen = ({ route, navigation }) => {
                 <Text style={styles.backButtonText}>{'< Back'}</Text>
               </TouchableOpacity>
               <Text style={styles.headerTitle} numberOfLines={1}>
-                {categoryName} ({validFiles.length})
+                {categoryName} ({displayedFiles.length})
               </Text>
             </>
           )}
@@ -849,7 +886,7 @@ export const CategoryListScreen = ({ route, navigation }) => {
 
         {/* File List */}
         <FlatList
-          data={validFiles}
+          data={displayedFiles}
           keyExtractor={(item, index) =>
             item?.path ? `${item.path}-${index}` : `file-${index}`
           }
@@ -864,7 +901,11 @@ export const CategoryListScreen = ({ route, navigation }) => {
           removeClippedSubviews={true}
           ListEmptyComponent={
             <View style={styles.emptyContainer}>
-              <Text style={styles.emptyText}>No files found in this category.</Text>
+              <Text style={styles.emptyText}>
+                {searchQuery.trim()
+                  ? `No files match "${searchQuery}"`
+                  : 'No files found in this category.'}
+              </Text>
             </View>
           }
         />
@@ -1450,6 +1491,31 @@ const styles = StyleSheet.create({
   },
   searchButton: {
     padding: 8,
+  },
+  searchHeaderContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#F2F4F7',
+    borderRadius: 20,
+    paddingHorizontal: 16,
+    flex: 1,
+    height: 48,
+  },
+  searchInput: {
+    flex: 1,
+    fontSize: 14,
+    fontFamily: 'Poppins-Regular',
+    color: '#1D2939',
+    paddingVertical: 0,
+  },
+  closeSearchButton: {
+    padding: 6,
+    marginLeft: 6,
+  },
+  closeSearchText: {
+    fontSize: 16,
+    color: '#666666',
+    fontWeight: '600',
   },
   compressedCard: {
     flexDirection: 'row',
