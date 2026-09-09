@@ -1049,6 +1049,9 @@ export const CategoryListScreen = ({ route, navigation }) => {
                 <View style={styles.detailInfoIcon}>
                   {selectedDetailFile ? (
                     (() => {
+                      if (isVideoFile(selectedDetailFile.name)) {
+                        return <VideoThumbnail path={selectedDetailFile.path} name={selectedDetailFile.name} />;
+                      }
                       const IconComp = getFileIcon(selectedDetailFile.name);
                       return <IconComp width={40} height={40} />;
                     })()
