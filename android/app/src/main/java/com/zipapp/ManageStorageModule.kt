@@ -288,10 +288,11 @@ class ManageStorageModule(private val reactContext: ReactApplicationContext) :
 
                 val pm = reactContext.packageManager
                 val info = pm.getPackageArchiveInfo(cleanPath, 0)
-                if (info != null) {
-                    info.applicationInfo.sourceDir = cleanPath
-                    info.applicationInfo.publicSourceDir = cleanPath
-                    val drawable = info.applicationInfo.loadIcon(pm)
+                val appInfo = info?.applicationInfo
+                if (appInfo != null) {
+                    appInfo.sourceDir = cleanPath
+                    appInfo.publicSourceDir = cleanPath
+                    val drawable = appInfo.loadIcon(pm)
                     if (drawable != null) {
                         val bitmap = if (drawable is android.graphics.drawable.BitmapDrawable) {
                             drawable.bitmap

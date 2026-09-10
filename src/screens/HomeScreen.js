@@ -33,6 +33,8 @@ import VideoIcon from '../assets/home/Background (5).svg';
 import APKIcon from '../assets/home/Background (6).svg';
 import DownloadsIcon from '../assets/home/Background (7).svg';
 import PermissionIllustration from '../assets/permission/Group 1000007537.svg';
+import LottieView from 'lottie-react-native';
+import LoadingAnimation from '../assets/Loading.json';
 
 const CATEGORY_UI = [
   { id: 'Compressed', title: 'Compressed', icon: CompressedIcon },
@@ -323,6 +325,25 @@ export const HomeScreen = ({ navigation }) => {
           </View>
         </Modal>
 
+        {/* Refresh Lottie Loading Modal */}
+        <Modal
+          visible={isScanning}
+          transparent={true}
+          animationType="fade"
+          onRequestClose={() => {}}
+        >
+          <View style={styles.lottieModalOverlay}>
+            <View style={styles.lottieCard}>
+              <LottieView
+                source={LoadingAnimation}
+                autoPlay
+                loop
+                style={styles.lottieAnimation}
+              />
+            </View>
+          </View>
+        </Modal>
+
       </ScrollView>
     </SafeAreaView>
   );
@@ -534,6 +555,28 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontFamily: 'Poppins-SemiBold',
     fontWeight: '600',
+  },
+  lottieModalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  lottieCard: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 20,
+    padding: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+    elevation: 8,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 6,
+  },
+  lottieAnimation: {
+    width: 140,
+    height: 140,
   },
 });
 
