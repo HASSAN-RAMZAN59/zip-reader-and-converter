@@ -24,7 +24,7 @@ import { permissionsService } from '../services/permissionsService';
 import RefreshIcon from '../assets/home/refresh.svg';
 import SettingsIcon from '../assets/home/settings.svg';
 import FolderZipIcon from '../assets/home/folder_zip.svg';
-import DeviceStorageIllustration from '../assets/home/Group 1000007537.svg';
+import DeviceStorageIllustration from '../assets/Group 1000007577.svg';
 import AvailableSpaceIcon from '../assets/home/Group 1.svg';
 import CompressedIcon from '../assets/home/Background.svg';
 import ExtractedIcon from '../assets/home/Background (1).svg';
@@ -316,7 +316,7 @@ export const HomeScreen = ({ navigation }) => {
             </View>
 
             <View style={styles.storageCardRight}>
-              <DeviceStorageIllustration width={130} height={112} />
+              <DeviceStorageIllustration width={138} height={100} />
             </View>
           </View>
         </View>
@@ -454,10 +454,9 @@ const styles = StyleSheet.create({
   },
   storageCardRight: {
     position: 'absolute',
-    right: -16,
-    bottom: -4,
+    right: -8,
+    bottom: 4,
     zIndex: 1,
-    overflow: 'hidden',
   },
   storageTitle: {
     fontSize: 16,
