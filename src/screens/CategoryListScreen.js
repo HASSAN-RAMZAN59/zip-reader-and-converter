@@ -17,6 +17,7 @@ import {
   Share,
 } from 'react-native';
 import DocumentPicker from 'react-native-document-picker';
+import RNFS from 'react-native-fs';
 import FolderIcon from '../assets/fi_12075662.svg';
 import MoreVertIcon from '../assets/more_vert.svg';
 import SearchIcon from '../assets/search.svg';
