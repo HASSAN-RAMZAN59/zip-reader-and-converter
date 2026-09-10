@@ -86,18 +86,9 @@ export const CreateZipScreen = ({ route, navigation }) => {
   const defaultNameParam = route?.params?.defaultName || 'My_Archive.zip';
 
   const [archiveName, setArchiveName] = useState(defaultNameParam);
-  const [compressionLevel, setCompressionLevel] = useState('Standrad');
   const [password, setPassword] = useState('');
   const [selectedFiles, setSelectedFiles] = useState(initialFiles);
   const [isCompressing, setIsCompressing] = useState(false);
-  const [showLevelModal, setShowLevelModal] = useState(false);
-
-  const compressionLevels = [
-    { label: 'Standrad', value: 'Standrad' },
-    { label: 'Fast', value: 'Fast' },
-    { label: 'Maximum', value: 'Maximum' },
-    { label: 'Store (No Compression)', value: 'Store' },
-  ];
 
   useEffect(() => {
     if (route?.params?.initialFiles && route.params.initialFiles.length > 0) {
@@ -253,20 +244,6 @@ export const CreateZipScreen = ({ route, navigation }) => {
                 />
               </View>
 
-              {/* Compression Level */}
-              <View style={styles.inputGroup}>
-                <Text style={styles.inputLabel}>Compression Level</Text>
-                <TouchableOpacity
-                  style={styles.dropdownInput}
-                  activeOpacity={0.7}
-                  onPress={() => setShowLevelModal(true)}
-                  disabled={isCompressing}
-                >
-                  <Text style={styles.dropdownText}>{compressionLevel}</Text>
-                  <Text style={styles.dropdownArrow}>▼</Text>
-                </TouchableOpacity>
-              </View>
-
               {/* Optional Password */}
               <View style={styles.inputGroup}>
                 <Text style={styles.inputLabel}>Optional Password</Text>
@@ -335,47 +312,6 @@ export const CreateZipScreen = ({ route, navigation }) => {
             </TouchableOpacity>
           </View>
         </View>
-
-        {/* Compression Level Picker Modal */}
-        <Modal
-          visible={showLevelModal}
-          transparent={true}
-          animationType="fade"
-          onRequestClose={() => setShowLevelModal(false)}
-        >
-          <TouchableOpacity
-            style={styles.modalOverlay}
-            activeOpacity={1}
-            onPress={() => setShowLevelModal(false)}
-          >
-            <View style={styles.levelModalBox}>
-              <Text style={styles.levelModalTitle}>Select Compression Level</Text>
-              {compressionLevels.map((lvl) => (
-                <TouchableOpacity
-                  key={lvl.value}
-                  style={[
-                    styles.levelOption,
-                    compressionLevel === lvl.value && styles.selectedLevelOption,
-                  ]}
-                  onPress={() => {
-                    setCompressionLevel(lvl.value);
-                    setShowLevelModal(false);
-                  }}
-                >
-                  <Text
-                    style={[
-                      styles.levelOptionText,
-                      compressionLevel === lvl.value && styles.selectedLevelOptionText,
-                    ]}
-                  >
-                    {lvl.label}
-                  </Text>
-                </TouchableOpacity>
-              ))}
-            </View>
-          </TouchableOpacity>
-        </Modal>
-
       </View>
     </SafeAreaView>
   );
@@ -439,24 +375,6 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontFamily: 'Poppins-Regular',
     color: '#2D3748',
-  },
-  dropdownInput: {
-    backgroundColor: '#F2F4F7',
-    borderRadius: 14,
-    paddingHorizontal: 16,
-    paddingVertical: 14,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-  dropdownText: {
-    fontSize: 14,
-    fontFamily: 'Poppins-Regular',
-    color: '#2D3748',
-  },
-  dropdownArrow: {
-    fontSize: 10,
-    color: '#4A5568',
   },
   sectionHeaderRow: {
     marginTop: 8,
@@ -586,51 +504,6 @@ const styles = StyleSheet.create({
   },
   disabledBtn: {
     opacity: 0.5,
-  },
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.4)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 24,
-  },
-  levelModalBox: {
-    width: '100%',
-    backgroundColor: '#FFFFFF',
-    borderRadius: 20,
-    padding: 20,
-    elevation: 8,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.2,
-    shadowRadius: 6,
-  },
-  levelModalTitle: {
-    fontSize: 16,
-    fontFamily: 'Poppins-SemiBold',
-    fontWeight: '600',
-    color: '#2D3748',
-    marginBottom: 16,
-    textAlign: 'center',
-  },
-  levelOption: {
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    borderRadius: 12,
-    marginBottom: 8,
-    backgroundColor: '#F7FAFC',
-  },
-  selectedLevelOption: {
-    backgroundColor: '#E8F5E9',
-  },
-  levelOptionText: {
-    fontSize: 14,
-    fontFamily: 'Poppins-Medium',
-    color: '#4A5568',
-  },
-  selectedLevelOptionText: {
-    color: '#2E7D32',
-    fontWeight: '600',
   },
 });
 
