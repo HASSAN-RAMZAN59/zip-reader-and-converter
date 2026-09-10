@@ -28,6 +28,9 @@ import {
   createZipArchive,
   getArchiveContents,
 } from '../services/ZipService';
+import LottieView from 'lottie-react-native';
+import LoadingAnimation from '../assets/Loading.json';
+import { GradientButton } from '../components/GradientButton';
 
 // Import Icons from home (used as file type icons)
 import CompressedIcon from '../assets/home/Background.svg';
@@ -583,6 +586,8 @@ export const CategoryListScreen = ({ route, navigation }) => {
         route.params.onExtractSuccess(result);
       }
 
+      setIsExtracting(false);
+      setExtractingStatus('');
       setExtractModalVisible(false);
       setPasswordModalVisible(false);
       setSelectedArchive(null);
@@ -590,11 +595,15 @@ export const CategoryListScreen = ({ route, navigation }) => {
       setIsEncrypted(false);
       setPendingTargetDir(null);
 
-      Alert.alert(
-        'Success',
-        `Archive extracted successfully!\n\nLocation: ${result.extractedPath}`
-      );
+      setTimeout(() => {
+        Alert.alert(
+          'Success',
+          `Archive extracted successfully!\n\nLocation: ${result.extractedPath}`
+        );
+      }, 150);
     } catch (error) {
+      setIsExtracting(false);
+      setExtractingStatus('');
       console.error('Extraction error:', error);
       const errMsg = String(error.message || error || '').toLowerCase();
       if (errMsg.includes('password') || errMsg.includes('encrypted')) {
@@ -611,9 +620,6 @@ export const CategoryListScreen = ({ route, navigation }) => {
           error.message || 'Failed to extract archive. File might be corrupted.'
         );
       }
-    } finally {
-      setIsExtracting(false);
-      setExtractingStatus('');
     }
   };
 
@@ -1053,12 +1059,8 @@ export const CategoryListScreen = ({ route, navigation }) => {
 
               {/* Bottom Actions */}
               <View style={styles.detailsBottomActions}>
-                <TouchableOpacity style={styles.detailsExtractBtn} activeOpacity={0.8} onPress={handleExtractHere}>
-                  <Text style={styles.detailsExtractBtnText}>Extract Here</Text>
-                </TouchableOpacity>
-                <TouchableOpacity style={[styles.detailsExtractBtn, styles.detailsCustomFolderBtn]} activeOpacity={0.8} onPress={handleExtractToCustomFolder}>
-                  <Text style={styles.detailsExtractBtnText}>Choose Custom Folder</Text>
-                </TouchableOpacity>
+                <GradientButton style={styles.detailsExtractBtn} onPress={handleExtractHere} title="Extract Here" />
+                <GradientButton style={[styles.detailsExtractBtn, styles.detailsCustomFolderBtn]} onPress={handleExtractToCustomFolder} title="Choose Custom Folder" />
               </View>
             </View>
           </SafeAreaView>
@@ -1097,14 +1099,12 @@ export const CategoryListScreen = ({ route, navigation }) => {
                 </View>
               )}
 
-              <TouchableOpacity
+              <GradientButton
                 style={[styles.modalButton, isExtracting && styles.disabledButton]}
-                activeOpacity={0.8}
                 onPress={handleConfirmPasswordExtraction}
                 disabled={isExtracting}
-              >
-                <Text style={styles.modalButtonText}>Extract</Text>
-              </TouchableOpacity>
+                title="Extract"
+              />
 
               <TouchableOpacity
                 style={[styles.cancelButton, isExtracting && styles.disabledButton]}
@@ -1233,28 +1233,43 @@ export const CategoryListScreen = ({ route, navigation }) => {
                 </View>
               </View>
 
-              <TouchableOpacity
+              <GradientButton
                 style={styles.detailActionBtn}
-                activeOpacity={0.8}
                 onPress={() => {
                   if (selectedDetailFile && selectedDetailFile.path) {
                     setDetailModalVisible(false);
                     openWithSystemApp(selectedDetailFile.path);
                   }
                 }}
-              >
-                <Text style={styles.detailActionBtnText}>Open File</Text>
-              </TouchableOpacity>
+                title="Open File"
+              />
 
-              <TouchableOpacity
+              <GradientButton
                 style={styles.detailActionBtn}
-                activeOpacity={0.8}
                 onPress={handleShareFile}
-              >
-                <Text style={styles.detailActionBtnText}>Share File</Text>
-              </TouchableOpacity>
+                title="Share File"
+              />
             </View>
           </TouchableOpacity>
+        </Modal>
+
+        {/* 5. Extraction Lottie Loading Modal */}
+        <Modal
+          visible={isExtracting}
+          transparent={true}
+          animationType="fade"
+          onRequestClose={() => {}}
+        >
+          <View style={styles.lottieModalOverlay}>
+            <View style={styles.lottieCard}>
+              <LottieView
+                source={LoadingAnimation}
+                autoPlay
+                loop
+                style={styles.lottieAnimation}
+              />
+            </View>
+          </View>
         </Modal>
       </View>
     </SafeAreaView>
@@ -1961,6 +1976,28 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontFamily: 'Poppins-Medium',
     fontWeight: '600',
+  },
+  lottieModalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  lottieCard: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 20,
+    padding: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+    elevation: 8,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 6,
+  },
+  lottieAnimation: {
+    width: 140,
+    height: 140,
   },
 });
 

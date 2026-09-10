@@ -35,6 +35,7 @@ import DownloadsIcon from '../assets/home/Background (7).svg';
 import PermissionIllustration from '../assets/permission/Group 1000007537.svg';
 import LottieView from 'lottie-react-native';
 import LoadingAnimation from '../assets/Loading.json';
+import { GradientButton } from '../components/GradientButton';
 
 const CATEGORY_UI = [
   { id: 'Compressed', title: 'Compressed', icon: CompressedIcon },
@@ -97,8 +98,10 @@ export const HomeScreen = ({ navigation }) => {
     }
   }, []);
 
-  const runFileScan = useCallback(async () => {
-    setIsScanning(true);
+  const runFileScan = useCallback(async (showLoader = false) => {
+    if (showLoader) {
+      setIsScanning(true);
+    }
     try {
       const results = await scanDeviceStorage();
       setCategorizedData(results);
@@ -119,7 +122,7 @@ export const HomeScreen = ({ navigation }) => {
       if (isGranted) {
         if (!hasInitialScanRun.current) {
           hasInitialScanRun.current = true;
-          runFileScan();
+          runFileScan(true);
           fetchStorageInfo();
         }
       }
@@ -134,7 +137,7 @@ export const HomeScreen = ({ navigation }) => {
       async () => {
         const isGranted = await permissionsService.checkStoragePermission();
         if (isGranted) {
-          runFileScan();
+          runFileScan(false);
           fetchStorageInfo();
         }
       }
@@ -145,7 +148,7 @@ export const HomeScreen = ({ navigation }) => {
       async () => {
         const isGranted = await permissionsService.checkStoragePermission();
         if (isGranted) {
-          runFileScan();
+          runFileScan(false);
           fetchStorageInfo();
         }
       }
@@ -166,7 +169,7 @@ export const HomeScreen = ({ navigation }) => {
           setShowPermissionModal(false);
           if (!hasInitialScanRun.current) {
             hasInitialScanRun.current = true;
-            runFileScan();
+            runFileScan(false);
             fetchStorageInfo();
           }
         }
@@ -249,7 +252,7 @@ export const HomeScreen = ({ navigation }) => {
             <Text style={styles.topHeaderSubtitle}>Manage your archives and files</Text>
           </View>
           <View style={styles.headerIcons}>
-            <TouchableOpacity onPress={() => requirePermission(() => { runFileScan(); fetchStorageInfo(); })} disabled={isScanning} activeOpacity={0.7} style={styles.iconButton}>
+            <TouchableOpacity onPress={() => requirePermission(() => { runFileScan(true); fetchStorageInfo(); })} disabled={isScanning} activeOpacity={0.7} style={styles.iconButton}>
               <RefreshIcon width={24} height={24} style={[isScanning && styles.disabledIcon]} />
             </TouchableOpacity>
             <TouchableOpacity onPress={() => {}} activeOpacity={0.7} style={styles.iconButton}>
@@ -311,16 +314,12 @@ export const HomeScreen = ({ navigation }) => {
                 Allow Document Reader to access all your Documents on this Device ?
               </Text>
               
-              <TouchableOpacity
+              <GradientButton
                 style={[styles.permissionAllowBtn, checkingPermission && styles.disabledIcon]}
-                activeOpacity={0.8}
                 onPress={handleGrantPermission}
                 disabled={checkingPermission}
-              >
-                <Text style={styles.permissionAllowBtnText}>
-                  {checkingPermission ? 'Checking...' : 'Allow'}
-                </Text>
-              </TouchableOpacity>
+                title={checkingPermission ? 'Checking...' : 'Allow'}
+              />
             </View>
           </View>
         </Modal>

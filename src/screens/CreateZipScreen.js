@@ -16,6 +16,7 @@ import {
 } from 'react-native';
 import DocumentPicker from 'react-native-document-picker';
 import { createZipArchive } from '../services/ZipService';
+import { GradientButton } from '../components/GradientButton';
 
 // Import SVG Assets
 import CompressedIcon from '../assets/home/Background.svg';
@@ -291,25 +292,19 @@ export const CreateZipScreen = ({ route, navigation }) => {
           )}
 
           <View style={styles.buttonRow}>
-            <TouchableOpacity
-              style={[styles.pillBtn, styles.greenBtn, isCompressing && styles.disabledBtn]}
-              activeOpacity={0.8}
+            <GradientButton
+              style={[styles.pillBtn, isCompressing && styles.disabledBtn]}
               onPress={handlePickFiles}
               disabled={isCompressing}
-            >
-              <Text style={styles.pillBtnText}>Add More</Text>
-            </TouchableOpacity>
+              title="Add More"
+            />
 
-            <TouchableOpacity
-              style={[styles.pillBtn, styles.greenBtn, isCompressing && styles.disabledBtn]}
-              activeOpacity={0.8}
+            <GradientButton
+              style={[styles.pillBtn, isCompressing && styles.disabledBtn]}
               onPress={handleCompress}
               disabled={isCompressing}
-            >
-              <Text style={styles.pillBtnText}>
-                {isCompressing ? 'Compressing...' : 'Compress Now'}
-              </Text>
-            </TouchableOpacity>
+              title={isCompressing ? 'Compressing...' : 'Compress Now'}
+            />
           </View>
         </View>
       </View>
