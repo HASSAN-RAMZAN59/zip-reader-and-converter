@@ -78,18 +78,34 @@ export const scanDeviceStorage = async (
 
   const seenFilePaths = new Set();
 
-  // Load known zip archive names for extraction matching
+  // Load known extracted directories & zip archive names for extraction matching
+  let knownExtractedDirs = [];
   let knownZipBaseNames = [];
+
   try {
-    const historyJson = await AsyncStorage.getItem('@recent_zips');
-    if (historyJson) {
-      const history = JSON.parse(historyJson);
-      knownZipBaseNames = history
-        .map((item) => {
-          const cleanName = (item.name || '').replace(/\.[^/.]+$/, '').toLowerCase();
-          return cleanName;
-        })
-        .filter(Boolean);
+    const extractedHistoryJson = await AsyncStorage.getItem('@extracted_history');
+    if (extractedHistoryJson) {
+      const extractedList = JSON.parse(extractedHistoryJson);
+      extractedList.forEach((item) => {
+        if (item.extractedPath) {
+          knownExtractedDirs.push(item.extractedPath.toLowerCase());
+        }
+        if (item.archiveName) {
+          const baseName = item.archiveName.replace(/\.[^/.]+$/, '').toLowerCase();
+          if (baseName) knownZipBaseNames.push(baseName);
+        }
+      });
+    }
+
+    const zipHistoryJson = await AsyncStorage.getItem('@recent_zips');
+    if (zipHistoryJson) {
+      const zipList = JSON.parse(zipHistoryJson);
+      zipList.forEach((item) => {
+        if (item.name) {
+          const baseName = item.name.replace(/\.[^/.]+$/, '').toLowerCase();
+          if (baseName) knownZipBaseNames.push(baseName);
+        }
+      });
     }
   } catch (e) {
     // Ignore storage read error
@@ -119,6 +135,14 @@ export const scanDeviceStorage = async (
   };
 
   const isExtractedPath = (normalizedPath) => {
+    // 1. Direct match with extracted paths from history
+    for (const extDir of knownExtractedDirs) {
+      if (extDir && (normalizedPath.startsWith(extDir) || normalizedPath.includes(extDir))) {
+        return true;
+      }
+    }
+
+    // 2. Keywords match
     const extractionKeywords = [
       '/extracted',
       '/extract',
@@ -139,8 +163,9 @@ export const scanDeviceStorage = async (
       }
     }
 
+    // 3. Known zip base name match
     for (const baseName of knownZipBaseNames) {
-      if (baseName.length > 2 && normalizedPath.includes(`/${baseName}/`)) {
+      if (baseName.length > 2 && (normalizedPath.includes(`/${baseName}/`) || normalizedPath.endsWith(`/${baseName}`))) {
         return true;
       }
     }
@@ -237,11 +262,22 @@ export const scanDeviceStorage = async (
         })
       );
 
-      iterationCount += currentBatch.length;
+    }
 
-      // Yield every 12 directories to keep UI at 60 FPS
-      if (iterationCount % 12 === 0) {
-        await new Promise((resolve) => setTimeout(resolve, 0));
+    // Explicitly scan all known extracted directories from history
+    for (const extDir of knownExtractedDirs) {
+      try {
+        const exists = await RNFS.exists(extDir);
+        if (exists) {
+          const items = await RNFS.readDir(extDir);
+          for (const item of items) {
+            if (item.isFile()) {
+              processFile(item);
+            }
+          }
+        }
+      } catch (err) {
+        // Skip unreadable directory
       }
     }
   } catch (error) {

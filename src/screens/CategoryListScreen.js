@@ -27,6 +27,7 @@ import {
   checkArchiveEncrypted,
   createZipArchive,
   getArchiveContents,
+  getExtractedHistory,
 } from '../services/ZipService';
 import LottieView from 'lottie-react-native';
 import LoadingAnimation from '../assets/Loading.json';
@@ -283,12 +284,61 @@ export const CategoryListScreen = ({ route, navigation }) => {
     ? files.filter((f) => f && typeof f === 'object' && f.name)
     : [];
 
+  const [fileList, setFileList] = useState(validFiles);
+
+  useEffect(() => {
+    let isMounted = true;
+    const loadExtractedFiles = async () => {
+      if (isExtracted) {
+        try {
+          const history = await getExtractedHistory();
+          const merged = [...validFiles];
+          const pathSet = new Set(validFiles.map((f) => f.path).filter(Boolean));
+
+          for (const item of history) {
+            if (item.extractedPath) {
+              const exists = await RNFS.exists(item.extractedPath);
+              if (exists) {
+                const dirItems = await RNFS.readDir(item.extractedPath);
+                for (const subItem of dirItems) {
+                  if (subItem.isFile() && !pathSet.has(subItem.path)) {
+                    pathSet.add(subItem.path);
+                    merged.push({
+                      name: subItem.name,
+                      path: subItem.path,
+                      size: subItem.size,
+                      mtime: subItem.mtime,
+                    });
+                  }
+                }
+              }
+            }
+          }
+
+          if (isMounted) {
+            setFileList(merged);
+          }
+        } catch (err) {
+          console.error('Error loading extracted files:', err);
+        }
+      } else {
+        setFileList(validFiles);
+      }
+    };
+
+    loadExtractedFiles();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [isExtracted, files]);
+
   // Real-time Search State
   const [isSearchActive, setIsSearchActive] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
 
   // Real-time Filtered Files List
-  const displayedFiles = validFiles.filter((item) => {
+  const displayedFiles = fileList.filter((item) => {
     if (!searchQuery.trim()) return true;
     return item?.name?.toLowerCase().includes(searchQuery.trim().toLowerCase());
   });
@@ -407,10 +457,10 @@ export const CategoryListScreen = ({ route, navigation }) => {
   };
 
   const handleSelectAll = () => {
-    if (selectedPaths.size === validFiles.length) {
+    if (selectedPaths.size === fileList.length) {
       setSelectedPaths(new Set());
     } else {
-      const allSet = new Set(validFiles.map((f) => f.path).filter(Boolean));
+      const allSet = new Set(fileList.map((f) => f.path).filter(Boolean));
       setSelectedPaths(allSet);
     }
   };
