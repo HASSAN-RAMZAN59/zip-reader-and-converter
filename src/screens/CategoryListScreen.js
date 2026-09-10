@@ -293,22 +293,60 @@ export const CategoryListScreen = ({ route, navigation }) => {
       if (isExtracted) {
         try {
           const history = await getExtractedHistory();
-          const merged = [...validFiles];
-          const pathSet = new Set(validFiles.map((f) => f.path).filter(Boolean));
+          const merged = [];
+          const pathSet = new Set();
 
-          for (const item of history) {
-            if (item.extractedPath) {
-              const exists = await RNFS.exists(item.extractedPath);
-              if (exists) {
-                const dirItems = await RNFS.readDir(item.extractedPath);
-                for (const subItem of dirItems) {
-                  if (subItem.isFile() && !pathSet.has(subItem.path)) {
+          // Recursive helper to get all extracted files inside a folder
+          const readFolderRecursively = async (dirPath) => {
+            try {
+              const items = await RNFS.readDir(dirPath);
+              for (const subItem of items) {
+                if (subItem.isFile() && !subItem.name.startsWith('.')) {
+                  const ext = getExtension(subItem.name);
+                  if (!COMPRESSED_EXTENSIONS.includes(ext) && !pathSet.has(subItem.path)) {
                     pathSet.add(subItem.path);
                     merged.push({
                       name: subItem.name,
                       path: subItem.path,
                       size: subItem.size,
                       mtime: subItem.mtime,
+                    });
+                  }
+                } else if (subItem.isDirectory() && !subItem.name.startsWith('.')) {
+                  await readFolderRecursively(subItem.path);
+                }
+              }
+            } catch (e) {
+              // Ignore unreadable directory
+            }
+          };
+
+          // 1. Filter out compressed archives from files passed from scanner
+          for (const f of validFiles) {
+            const ext = getExtension(f.name);
+            if (!COMPRESSED_EXTENSIONS.includes(ext) && !pathSet.has(f.path)) {
+              pathSet.add(f.path);
+              merged.push(f);
+            }
+          }
+
+          // 2. Scan extracted folders from history
+          for (const item of history) {
+            if (item.extractedPath) {
+              const exists = await RNFS.exists(item.extractedPath);
+              if (exists) {
+                const stat = await RNFS.stat(item.extractedPath);
+                if (stat.isDirectory()) {
+                  await readFolderRecursively(item.extractedPath);
+                } else if (stat.isFile()) {
+                  const ext = getExtension(item.extractedPath);
+                  if (!COMPRESSED_EXTENSIONS.includes(ext) && !pathSet.has(item.extractedPath)) {
+                    pathSet.add(item.extractedPath);
+                    merged.push({
+                      name: item.extractedPath.split('/').pop(),
+                      path: item.extractedPath,
+                      size: stat.size,
+                      mtime: stat.mtime,
                     });
                   }
                 }

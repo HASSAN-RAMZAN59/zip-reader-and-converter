@@ -14,6 +14,7 @@ import {
   AppState,
 } from 'react-native';
 import RNFS from 'react-native-fs';
+import { useFocusEffect } from '@react-navigation/native';
 
 import { scanDeviceStorage } from '../services/FileScanner';
 import { permissionsService } from '../services/permissionsService';
@@ -130,27 +131,21 @@ export const HomeScreen = ({ navigation }) => {
     init();
   }, [runFileScan, fetchStorageInfo]);
 
+  const pendingRefreshRef = useRef(false);
+
   // Listen for real-time extraction & creation events
   useEffect(() => {
     const extractionSub = DeviceEventEmitter.addListener(
       'EXTRACTION_SUCCESS',
-      async () => {
-        const isGranted = await permissionsService.checkStoragePermission();
-        if (isGranted) {
-          runFileScan(false);
-          fetchStorageInfo();
-        }
+      () => {
+        pendingRefreshRef.current = true;
       }
     );
 
     const zipCreatedSub = DeviceEventEmitter.addListener(
       'ZIP_CREATED',
-      async () => {
-        const isGranted = await permissionsService.checkStoragePermission();
-        if (isGranted) {
-          runFileScan(false);
-          fetchStorageInfo();
-        }
+      () => {
+        pendingRefreshRef.current = true;
       }
     );
 
@@ -158,7 +153,22 @@ export const HomeScreen = ({ navigation }) => {
       extractionSub.remove();
       zipCreatedSub.remove();
     };
-  }, [runFileScan, fetchStorageInfo]);
+  }, []);
+
+  // When returning to HomeScreen after extraction/creation, auto-refresh with Lottie loader!
+  useFocusEffect(
+    useCallback(() => {
+      if (pendingRefreshRef.current) {
+        pendingRefreshRef.current = false;
+        permissionsService.checkStoragePermission().then((isGranted) => {
+          if (isGranted) {
+            runFileScan(true);
+            fetchStorageInfo();
+          }
+        });
+      }
+    }, [runFileScan, fetchStorageInfo])
+  );
 
   // Listen for AppState changes to detect permission grant from settings
   useEffect(() => {

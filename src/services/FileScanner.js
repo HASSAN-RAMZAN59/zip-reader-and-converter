@@ -134,7 +134,12 @@ export const scanDeviceStorage = async (
     return false;
   };
 
-  const isExtractedPath = (normalizedPath) => {
+  const isExtractedPath = (normalizedPath, ext) => {
+    // Extracted category should NEVER include compressed archive files (.zip, .rar, .7z, etc.)
+    if (EXTENSION_CATEGORIES.Compressed.includes(ext)) {
+      return false;
+    }
+
     // 1. Direct match with extracted paths from history
     for (const extDir of knownExtractedDirs) {
       if (extDir && (normalizedPath.startsWith(extDir) || normalizedPath.includes(extDir))) {
@@ -144,17 +149,17 @@ export const scanDeviceStorage = async (
 
     // 2. Keywords match
     const extractionKeywords = [
-      '/extracted',
-      '/extract',
-      '/unzip',
-      '/unzipped',
-      '/unrar',
-      '/decompressed',
-      '/zipapp',
-      '_extracted',
-      '-extracted',
-      '_unzipped',
-      '-unzipped',
+      '/extracted/',
+      '/extract/',
+      '/unzip/',
+      '/unzipped/',
+      '/unrar/',
+      '/decompressed/',
+      '/zipapp/',
+      '_extracted/',
+      '-extracted/',
+      '_unzipped/',
+      '-unzipped/',
     ];
 
     for (const keyword of extractionKeywords) {
@@ -163,9 +168,9 @@ export const scanDeviceStorage = async (
       }
     }
 
-    // 3. Known zip base name match
+    // 3. Known zip base name match (must be a subfolder/file inside the extracted folder)
     for (const baseName of knownZipBaseNames) {
-      if (baseName.length > 2 && (normalizedPath.includes(`/${baseName}/`) || normalizedPath.endsWith(`/${baseName}`))) {
+      if (baseName.length > 2 && normalizedPath.includes(`/${baseName}/`)) {
         return true;
       }
     }
@@ -209,7 +214,7 @@ export const scanDeviceStorage = async (
     }
 
     // Extracted category
-    if (isExtractedPath(normalizedPath)) {
+    if (isExtractedPath(normalizedPath, ext)) {
       categorizedFiles.Extracted.push(fileInfo);
     }
 
