@@ -10,6 +10,7 @@ import {
   StatusBar,
 } from 'react-native';
 import { storageService } from '../services/storageService';
+import Svg, { Defs, LinearGradient as SvgGradient, Stop, Rect } from 'react-native-svg';
 
 // Slide 1 SVG Assets
 import ObjectsBg from '../assets/boardings/1/OBJECTS.svg';
@@ -185,6 +186,15 @@ export const OnboardingScreen = ({ navigation }) => {
             onPress={handleGetStarted}
             activeOpacity={0.8}
           >
+            <Svg height="32" width="68" style={StyleSheet.absoluteFillObject}>
+              <Defs>
+                <SvgGradient id="skipBtnGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+                  <Stop offset="0%" stopColor="#84CD4D" stopOpacity="1" />
+                  <Stop offset="100%" stopColor="#138235" stopOpacity="1" />
+                </SvgGradient>
+              </Defs>
+              <Rect x="0" y="0" width="68" height="32" rx="16" fill="url(#skipBtnGrad)" />
+            </Svg>
             <Text style={styles.skipButtonText}>Skip</Text>
           </TouchableOpacity>
         ) : null}
@@ -217,6 +227,15 @@ export const OnboardingScreen = ({ navigation }) => {
           onPress={handleNext}
           activeOpacity={0.85}
         >
+          <Svg height="52" width={SCREEN_WIDTH * 0.6} style={StyleSheet.absoluteFillObject}>
+            <Defs>
+              <SvgGradient id="nextBtnGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+                <Stop offset="0%" stopColor="#84CD4D" stopOpacity="1" />
+                <Stop offset="100%" stopColor="#138235" stopOpacity="1" />
+              </SvgGradient>
+            </Defs>
+            <Rect x="0" y="0" width={SCREEN_WIDTH * 0.6} height="52" rx="26" fill="url(#nextBtnGrad)" />
+          </Svg>
           <Text style={styles.nextButtonText}>
             {isLastSlide ? 'Get Started' : 'Next'}
           </Text>
@@ -257,11 +276,12 @@ const styles = StyleSheet.create({
     zIndex: 10,
   },
   skipButton: {
-    backgroundColor: '#44A63B',
-    paddingVertical: 6,
-    paddingHorizontal: 18,
-    borderRadius: 18,
-    shadowColor: '#1B5E20',
+    width: 68,
+    height: 32,
+    borderRadius: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#138235',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.35,
     shadowRadius: 6,
@@ -375,11 +395,10 @@ const styles = StyleSheet.create({
   nextButton: {
     width: SCREEN_WIDTH * 0.6,
     height: 52,
-    backgroundColor: '#4CAF50',
     borderRadius: 26,
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: '#2E7D32',
+    shadowColor: '#138235',
     shadowOffset: { width: 0, height: 6 },
     shadowOpacity: 0.4,
     shadowRadius: 8,
