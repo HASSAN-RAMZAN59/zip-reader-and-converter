@@ -15,6 +15,7 @@ import {
 } from 'react-native';
 import RNFS from 'react-native-fs';
 import { useFocusEffect } from '@react-navigation/native';
+import Svg, { Defs, LinearGradient as SvgGradient, Stop, Rect, Path } from 'react-native-svg';
 
 import { scanDeviceStorage } from '../services/FileScanner';
 import { permissionsService } from '../services/permissionsService';
@@ -66,9 +67,9 @@ export const HomeScreen = ({ navigation }) => {
   });
 
   const [storageInfo, setStorageInfo] = useState({
-    usedStr: '0 GB',
-    totalStr: '0 GB',
-    availableStr: '0 GB',
+    usedVal: '0.0',
+    totalVal: '0.0',
+    availableVal: '0.0',
     fillPercentage: '0%',
   });
 
@@ -79,19 +80,19 @@ export const HomeScreen = ({ navigation }) => {
       const free = info.freeSpace;
       const used = total - free;
 
-      const toGB = (bytes) => (bytes / (1024 * 1024 * 1024)).toFixed(1) + ' GB';
+      const toGBNum = (bytes) => (bytes / (1024 * 1024 * 1024)).toFixed(1);
       
-      const usedStr = toGB(used);
-      const totalStr = toGB(total);
-      const availableStr = toGB(free);
+      const usedVal = toGBNum(used);
+      const totalVal = toGBNum(total);
+      const availableVal = toGBNum(free);
       
       const fillPercent = total > 0 ? (used / total) * 100 : 0;
       const fillPercentage = `${Math.min(100, Math.max(0, fillPercent))}%`;
 
       setStorageInfo({
-        usedStr,
-        totalStr,
-        availableStr,
+        usedVal,
+        totalVal,
+        availableVal,
         fillPercentage,
       });
     } catch (error) {
@@ -273,25 +274,50 @@ export const HomeScreen = ({ navigation }) => {
 
         {/* Device Storage Card */}
         <View style={styles.storageCard}>
-          <View style={styles.storageCardLeft}>
-            <Text style={styles.storageTitle}>Device Storage</Text>
-            <Text style={styles.storageText}>
-              <Text style={styles.storageUsed}>{storageInfo.usedStr}</Text> <Text style={styles.storageTotal}>/ {storageInfo.totalStr}</Text>
-            </Text>
-            <View style={styles.progressBarBg}>
-              <View style={[styles.progressBarFill, { width: storageInfo.fillPercentage }]} />
+          {/* Card SVG Gradient & Organic Wave Background */}
+          <Svg style={StyleSheet.absoluteFillObject} width="100%" height="100%" preserveAspectRatio="none" viewBox="0 0 100 100">
+            <Defs>
+              <SvgGradient id="storageCardGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+                <Stop offset="0%" stopColor="#009A3E" stopOpacity="1" />
+                <Stop offset="45%" stopColor="#007D32" stopOpacity="1" />
+                <Stop offset="100%" stopColor="#004D1E" stopOpacity="1" />
+              </SvgGradient>
+              <SvgGradient id="storageWaveGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                <Stop offset="0%" stopColor="#005D24" stopOpacity="0.85" />
+                <Stop offset="100%" stopColor="#003B15" stopOpacity="0.98" />
+              </SvgGradient>
+            </Defs>
+            <Rect x="0" y="0" width="100" height="100" fill="url(#storageCardGrad)" />
+            <Path d="M 0 42 C 25 32, 60 55, 100 38 L 100 100 L 0 100 Z" fill="url(#storageWaveGrad)" />
+          </Svg>
+
+          <View style={styles.storageCardContent}>
+            <View style={styles.storageCardLeft}>
+              <Text style={styles.storageTitle}>Device Storage</Text>
+              
+              <Text style={styles.storageText} numberOfLines={1}>
+                <Text style={styles.storageUsed}>{storageInfo.usedVal} GB used</Text>
+                <Text style={styles.storageTotal}> / {storageInfo.totalVal} GB Total</Text>
+              </Text>
+              
+              <View style={styles.progressBarBg}>
+                <View style={[styles.progressBarFill, { width: storageInfo.fillPercentage }]} />
+              </View>
+              
+              <View style={styles.availableRow}>
+                <AvailableSpaceIcon width={12} height={12} />
+                <Text style={styles.availableText}>{storageInfo.availableVal} GB Available</Text>
+              </View>
+              
+              <TouchableOpacity style={styles.createZipBtn} onPress={() => requirePermission(handleCreateZip)} activeOpacity={0.8}>
+                <Text style={styles.createZipBtnText}>Create Zip File</Text>
+                <FolderZipIcon width={16} height={16} style={{ marginLeft: 6 }} />
+              </TouchableOpacity>
             </View>
-            <View style={styles.availableRow}>
-              <AvailableSpaceIcon width={12} height={12} />
-              <Text style={styles.availableText}>{storageInfo.availableStr} Available</Text>
+
+            <View style={styles.storageCardRight}>
+              <DeviceStorageIllustration width={130} height={112} />
             </View>
-            <TouchableOpacity style={styles.createZipBtn} onPress={() => requirePermission(handleCreateZip)} activeOpacity={0.8}>
-              <Text style={styles.createZipBtnText}>Create Zip File</Text>
-              <FolderZipIcon width={20} height={20} style={{ marginLeft: 6 }} />
-            </TouchableOpacity>
-          </View>
-          <View style={styles.storageCardRight}>
-            <DeviceStorageIllustration width={140} height={120} />
           </View>
         </View>
 
@@ -397,84 +423,108 @@ const styles = StyleSheet.create({
     opacity: 0.4,
   },
   storageCard: {
-    backgroundColor: '#0F7B39',
-    borderRadius: 16,
-    padding: 16,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 24,
+    width: '100%',
+    aspectRatio: 359 / 159,
+    borderRadius: 20,
+    backgroundColor: '#004D1E',
+    marginBottom: 20,
     overflow: 'hidden',
+    position: 'relative',
+    justifyContent: 'center',
+    elevation: 4,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.15,
+    shadowRadius: 8,
+  },
+  storageCardContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    height: '100%',
+    zIndex: 2,
     position: 'relative',
   },
   storageCardLeft: {
     flex: 1,
+    paddingRight: 100,
+    justifyContent: 'center',
     zIndex: 2,
-    paddingRight: 110,
+  },
+  storageCardRight: {
+    position: 'absolute',
+    right: -16,
+    bottom: -4,
+    zIndex: 1,
+    overflow: 'hidden',
   },
   storageTitle: {
     fontSize: 16,
-    fontFamily: 'Poppins-SemiBold',
-    fontWeight: '600',
+    fontFamily: 'Poppins-Bold',
+    fontWeight: '700',
     color: '#FFFFFF',
-    marginBottom: 4,
+    marginBottom: 2,
   },
   storageText: {
     fontSize: 12,
-    color: '#E0E0E0',
     fontFamily: 'Poppins-Regular',
-    marginBottom: 8,
+    marginBottom: 6,
   },
   storageUsed: {
     color: '#FFFFFF',
-    fontWeight: '600',
+    fontFamily: 'Poppins-SemiBold',
+    fontWeight: '700',
   },
   storageTotal: {
-    color: '#A8D5BA',
+    color: 'rgba(255, 255, 255, 0.85)',
+    fontFamily: 'Poppins-Regular',
+    fontWeight: '400',
   },
   progressBarBg: {
-    height: 4,
-    backgroundColor: '#309054',
-    borderRadius: 2,
-    marginBottom: 8,
-    width: '90%',
+    height: 5,
+    backgroundColor: 'rgba(255, 255, 255, 0.25)',
+    borderRadius: 3,
+    marginBottom: 6,
+    width: '92%',
+    overflow: 'hidden',
   },
   progressBarFill: {
     height: '100%',
     backgroundColor: '#FFFFFF',
-    borderRadius: 2,
+    borderRadius: 3,
   },
   availableRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 16,
+    marginBottom: 8,
   },
   availableText: {
     color: '#FFFFFF',
-    fontSize: 11,
+    fontSize: 10.5,
     marginLeft: 6,
-    fontFamily: 'Poppins-Regular',
+    fontFamily: 'Poppins-Medium',
+    fontWeight: '500',
   },
   createZipBtn: {
     backgroundColor: '#FFFFFF',
-    borderRadius: 24,
+    borderRadius: 20,
     paddingHorizontal: 14,
-    paddingVertical: 8,
+    paddingVertical: 6,
     flexDirection: 'row',
     alignItems: 'center',
     alignSelf: 'flex-start',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 3,
+    elevation: 2,
   },
   createZipBtnText: {
-    color: '#0F7B39',
-    fontSize: 13,
-    fontFamily: 'Poppins-SemiBold',
-    fontWeight: '600',
-  },
-  storageCardRight: {
-    position: 'absolute',
-    right: -20,
-    bottom: 0,
-    zIndex: 1,
+    color: '#004D1E',
+    fontSize: 12,
+    fontFamily: 'Poppins-Bold',
+    fontWeight: '700',
   },
   categoriesSectionTitle: {
     fontSize: 16,
