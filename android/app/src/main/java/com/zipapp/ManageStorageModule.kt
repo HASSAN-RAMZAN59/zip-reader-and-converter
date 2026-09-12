@@ -98,6 +98,11 @@ class ManageStorageModule(private val reactContext: ReactApplicationContext) :
     }
 
     @ReactMethod
+    fun openFile(filePath: String, promise: Promise) {
+        openFile(filePath, null, promise)
+    }
+
+    @ReactMethod
     fun openFile(filePath: String, customMimeType: String?, promise: Promise) {
         try {
             val cleanPath = if (filePath.startsWith("file://")) {
@@ -136,6 +141,11 @@ class ManageStorageModule(private val reactContext: ReactApplicationContext) :
         } catch (e: Exception) {
             promise.reject("OPEN_ERROR", e.message)
         }
+    }
+
+    @ReactMethod
+    fun shareFile(filePath: String, promise: Promise) {
+        shareFile(filePath, null, promise)
     }
 
     @ReactMethod

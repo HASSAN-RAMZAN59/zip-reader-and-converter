@@ -632,11 +632,11 @@ export const CategoryListScreen = ({ route, navigation }) => {
       try {
         if (NativeModules.ManageStorageModule) {
           if (filePaths.length === 1 && NativeModules.ManageStorageModule.shareFile) {
-            await NativeModules.ManageStorageModule.shareFile(filePaths[0], null);
+            await NativeModules.ManageStorageModule.shareFile(filePaths[0]);
           } else if (filePaths.length > 1 && NativeModules.ManageStorageModule.shareMultipleFiles) {
             await NativeModules.ManageStorageModule.shareMultipleFiles(filePaths);
           } else if (NativeModules.ManageStorageModule.shareFile) {
-            await NativeModules.ManageStorageModule.shareFile(filePaths[0], null);
+            await NativeModules.ManageStorageModule.shareFile(filePaths[0]);
           }
         } else {
           Alert.alert('Share File', `Files: ${filePaths.join(', ')}`);
