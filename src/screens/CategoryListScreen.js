@@ -400,11 +400,16 @@ export const CategoryListScreen = ({ route, navigation }) => {
   const [isExtracting, setIsExtracting] = useState(false);
   const [extractingStatus, setExtractingStatus] = useState('');
   
-  // New State for Zip Details
+  // New State for Zip Details & Custom Success UI Modal
   const [innerFiles, setInnerFiles] = useState([]);
   const [isLoadingContents, setIsLoadingContents] = useState(false);
   const [pendingTargetDir, setPendingTargetDir] = useState(null);
   const [passwordModalVisible, setPasswordModalVisible] = useState(false);
+  
+  // Custom Success Modal State
+  const [successModalVisible, setSuccessModalVisible] = useState(false);
+  const [successData, setSuccessData] = useState(null);
+  const [successType, setSuccessType] = useState('extract');
 
   useEffect(() => {
     const loadContents = async () => {
@@ -560,10 +565,13 @@ export const CategoryListScreen = ({ route, navigation }) => {
       setIsSelectionMode(false);
       setSelectedPaths(new Set());
 
-      Alert.alert(
-        'Zip Created Successfully!',
-        `Saved to: ${result.path}\n\nArchive: ${result.name}`
-      );
+      setSuccessData({
+        title: 'Zip Created Successfully!',
+        name: result.name || trimmedName,
+        path: result.path,
+      });
+      setSuccessType('create');
+      setSuccessModalVisible(true);
     } catch (error) {
       console.error('Compression failed:', error);
       Alert.alert(
@@ -686,6 +694,7 @@ export const CategoryListScreen = ({ route, navigation }) => {
         route.params.onExtractSuccess(result);
       }
 
+      const extractedName = selectedArchive ? selectedArchive.name : '';
       setIsExtracting(false);
       setExtractingStatus('');
       setExtractModalVisible(false);
@@ -695,12 +704,13 @@ export const CategoryListScreen = ({ route, navigation }) => {
       setIsEncrypted(false);
       setPendingTargetDir(null);
 
-      setTimeout(() => {
-        Alert.alert(
-          'Success',
-          `Archive extracted successfully!\n\nLocation: ${result.extractedPath}`
-        );
-      }, 150);
+      setSuccessData({
+        title: 'Extraction Successful!',
+        name: extractedName,
+        path: result.extractedPath,
+      });
+      setSuccessType('extract');
+      setSuccessModalVisible(true);
     } catch (error) {
       setIsExtracting(false);
       setExtractingStatus('');
@@ -1367,6 +1377,44 @@ export const CategoryListScreen = ({ route, navigation }) => {
                 autoPlay
                 loop
                 style={styles.lottieAnimation}
+              />
+            </View>
+        {/* 6. Custom Success UI Modal (Extraction & Zip Creation) */}
+        <Modal
+          visible={successModalVisible}
+          transparent={true}
+          animationType="fade"
+          onRequestClose={() => setSuccessModalVisible(false)}
+        >
+          <View style={styles.modalOverlay}>
+            <View style={styles.successModalCard}>
+              <View style={styles.successBadgeCircle}>
+                <Text style={styles.successCheckmark}>✓</Text>
+              </View>
+
+              <Text style={styles.successModalTitle}>
+                {successData?.title || 'Successful!'}
+              </Text>
+
+              {successData?.name ? (
+                <Text style={styles.successArchiveName} numberOfLines={1}>
+                  {successData.name}
+                </Text>
+              ) : null}
+
+              <View style={styles.successPathBox}>
+                <Text style={styles.successPathLabel}>Saved Location:</Text>
+                <Text style={styles.successPathText} numberOfLines={3}>
+                  {successData?.path || ''}
+                </Text>
+              </View>
+
+              <GradientButton
+                style={styles.successDoneBtn}
+                onPress={() => {
+                  setSuccessModalVisible(false);
+                }}
+                title="Done"
               />
             </View>
           </View>
@@ -2098,6 +2146,79 @@ const styles = StyleSheet.create({
   lottieAnimation: {
     width: 140,
     height: 140,
+  },
+  successModalCard: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 24,
+    width: '100%',
+    paddingHorizontal: 24,
+    paddingVertical: 28,
+    alignItems: 'center',
+    elevation: 10,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 6,
+  },
+  successBadgeCircle: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    backgroundColor: '#43A047',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 16,
+    elevation: 4,
+    shadowColor: '#2E7D32',
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+  },
+  successCheckmark: {
+    color: '#FFFFFF',
+    fontSize: 32,
+    fontWeight: '700',
+    lineHeight: 36,
+  },
+  successModalTitle: {
+    fontSize: 20,
+    fontFamily: 'Poppins-Bold',
+    fontWeight: '700',
+    color: '#2D3748',
+    marginBottom: 6,
+    textAlign: 'center',
+  },
+  successArchiveName: {
+    fontSize: 14,
+    fontFamily: 'Poppins-Medium',
+    color: '#4A5568',
+    marginBottom: 16,
+    textAlign: 'center',
+  },
+  successPathBox: {
+    width: '100%',
+    backgroundColor: '#F4F6F8',
+    borderRadius: 16,
+    padding: 14,
+    marginBottom: 24,
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+  },
+  successPathLabel: {
+    fontSize: 11,
+    fontFamily: 'Poppins-Medium',
+    color: '#718096',
+    marginBottom: 4,
+    textTransform: 'uppercase',
+  },
+  successPathText: {
+    fontSize: 12.5,
+    fontFamily: 'Poppins-Regular',
+    color: '#004D1E',
+    lineHeight: 18,
+  },
+  successDoneBtn: {
+    width: '100%',
   },
 });
 

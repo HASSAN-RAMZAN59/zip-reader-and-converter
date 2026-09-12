@@ -91,6 +91,10 @@ export const CreateZipScreen = ({ route, navigation }) => {
   const [selectedFiles, setSelectedFiles] = useState(initialFiles);
   const [isCompressing, setIsCompressing] = useState(false);
 
+  // Custom Success Modal State
+  const [successModalVisible, setSuccessModalVisible] = useState(false);
+  const [successData, setSuccessData] = useState(null);
+
   useEffect(() => {
     if (route?.params?.initialFiles && route.params.initialFiles.length > 0) {
       setSelectedFiles(route.params.initialFiles);
@@ -147,18 +151,12 @@ export const CreateZipScreen = ({ route, navigation }) => {
 
       DeviceEventEmitter.emit('ZIP_CREATED', result);
 
-      Alert.alert(
-        'Zip Created Successfully!',
-        `Saved to: ${result.path}\n\nArchive Name: ${result.name}`,
-        [
-          {
-            text: 'OK',
-            onPress: () => {
-              navigation.goBack();
-            },
-          },
-        ]
-      );
+      setSuccessData({
+        title: 'Zip Created Successfully!',
+        name: result.name || trimmedName,
+        path: result.path,
+      });
+      setSuccessModalVisible(true);
     } catch (error) {
       console.error('Compression failed:', error);
       Alert.alert('Compression Error', error.message || 'Failed to create zip archive.');
@@ -306,7 +304,53 @@ export const CreateZipScreen = ({ route, navigation }) => {
               title={isCompressing ? 'Compressing...' : 'Compress Now'}
             />
           </View>
+          </View>
         </View>
+
+        {/* Custom Success UI Modal */}
+        <Modal
+          visible={successModalVisible}
+          transparent={true}
+          animationType="fade"
+          onRequestClose={() => {
+            setSuccessModalVisible(false);
+            navigation.goBack();
+          }}
+        >
+          <View style={styles.modalOverlay}>
+            <View style={styles.successModalCard}>
+              <View style={styles.successBadgeCircle}>
+                <Text style={styles.successCheckmark}>✓</Text>
+              </View>
+
+              <Text style={styles.successModalTitle}>
+                {successData?.title || 'Success!'}
+              </Text>
+
+              {successData?.name ? (
+                <Text style={styles.successArchiveName} numberOfLines={1}>
+                  {successData.name}
+                </Text>
+              ) : null}
+
+              <View style={styles.successPathBox}>
+                <Text style={styles.successPathLabel}>Saved Location:</Text>
+                <Text style={styles.successPathText} numberOfLines={3}>
+                  {successData?.path || ''}
+                </Text>
+              </View>
+
+              <GradientButton
+                style={styles.successDoneBtn}
+                onPress={() => {
+                  setSuccessModalVisible(false);
+                  navigation.goBack();
+                }}
+                title="Done"
+              />
+            </View>
+          </View>
+        </Modal>
       </View>
     </SafeAreaView>
   );
@@ -499,6 +543,86 @@ const styles = StyleSheet.create({
   },
   disabledBtn: {
     opacity: 0.5,
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.6)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 24,
+  },
+  successModalCard: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 24,
+    width: '100%',
+    paddingHorizontal: 24,
+    paddingVertical: 28,
+    alignItems: 'center',
+    elevation: 10,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 6,
+  },
+  successBadgeCircle: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    backgroundColor: '#43A047',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 16,
+    elevation: 4,
+    shadowColor: '#2E7D32',
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+  },
+  successCheckmark: {
+    color: '#FFFFFF',
+    fontSize: 32,
+    fontWeight: '700',
+    lineHeight: 36,
+  },
+  successModalTitle: {
+    fontSize: 20,
+    fontFamily: 'Poppins-Bold',
+    fontWeight: '700',
+    color: '#2D3748',
+    marginBottom: 6,
+    textAlign: 'center',
+  },
+  successArchiveName: {
+    fontSize: 14,
+    fontFamily: 'Poppins-Medium',
+    color: '#4A5568',
+    marginBottom: 16,
+    textAlign: 'center',
+  },
+  successPathBox: {
+    width: '100%',
+    backgroundColor: '#F4F6F8',
+    borderRadius: 16,
+    padding: 14,
+    marginBottom: 24,
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+  },
+  successPathLabel: {
+    fontSize: 11,
+    fontFamily: 'Poppins-Medium',
+    color: '#718096',
+    marginBottom: 4,
+    textTransform: 'uppercase',
+  },
+  successPathText: {
+    fontSize: 12.5,
+    fontFamily: 'Poppins-Regular',
+    color: '#004D1E',
+    lineHeight: 18,
+  },
+  successDoneBtn: {
+    width: '100%',
   },
 });
 
