@@ -463,8 +463,8 @@ const styles = StyleSheet.create({
   },
   storageCardRight: {
     position: 'absolute',
-    right: 14,
-    bottom: 26,
+    right: 16,
+    bottom: 50,
     zIndex: 1,
   },
   storageTitle: {
