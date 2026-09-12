@@ -620,12 +620,12 @@ export const CategoryListScreen = ({ route, navigation }) => {
 
   const handleShareFile = async (targetFilePath = null) => {
     let filePaths = [];
-    if (targetFilePath) {
-      filePaths = [targetFilePath];
-    } else if (selectedPaths && selectedPaths.size > 0) {
-      filePaths = Array.from(selectedPaths);
+    if (typeof targetFilePath === 'string' && targetFilePath.trim()) {
+      filePaths = [targetFilePath.trim()];
     } else if (selectedDetailFile && selectedDetailFile.path) {
       filePaths = [selectedDetailFile.path];
+    } else if (selectedPaths && selectedPaths.size > 0) {
+      filePaths = Array.from(selectedPaths);
     }
 
     if (filePaths.length > 0) {
@@ -1346,7 +1346,7 @@ export const CategoryListScreen = ({ route, navigation }) => {
 
               <GradientButton
                 style={styles.detailActionBtn}
-                onPress={handleShareFile}
+                onPress={() => handleShareFile()}
                 title="Share File"
               />
             </View>
