@@ -323,10 +323,6 @@ export const HomeScreen = ({ navigation }) => {
                 <FolderZipIcon width={16} height={16} style={{ marginLeft: 6 }} />
               </TouchableOpacity>
             </View>
-
-            <View style={styles.storageCardRight}>
-              <DeviceStorageIllustration width={138} height={100} />
-            </View>
           </View>
         </View>
 
@@ -457,15 +453,9 @@ const styles = StyleSheet.create({
   },
   storageCardLeft: {
     flex: 1,
-    paddingRight: 100,
+    paddingRight: 0,
     justifyContent: 'center',
     zIndex: 2,
-  },
-  storageCardRight: {
-    position: 'absolute',
-    right: -8,
-    bottom: 22,
-    zIndex: 1,
   },
   storageTitle: {
     fontSize: 16,
@@ -494,7 +484,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(255, 255, 255, 0.25)',
     borderRadius: 3,
     marginBottom: 6,
-    width: '82%',
+    width: '100%',
     overflow: 'hidden',
   },
   progressBarFill: {
