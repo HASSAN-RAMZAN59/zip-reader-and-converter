@@ -455,7 +455,7 @@ const styles = StyleSheet.create({
   storageCardRight: {
     position: 'absolute',
     right: -8,
-    bottom: 4,
+    bottom: 22,
     zIndex: 1,
   },
   storageTitle: {
@@ -485,7 +485,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(255, 255, 255, 0.25)',
     borderRadius: 3,
     marginBottom: 6,
-    width: '92%',
+    width: '82%',
     overflow: 'hidden',
   },
   progressBarFill: {
