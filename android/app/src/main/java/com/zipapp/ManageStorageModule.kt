@@ -64,7 +64,6 @@ class ManageStorageModule(private val reactContext: ReactApplicationContext) :
         }
     }
 
-    @ReactMethod
     private fun getMimeType(file: File, customMimeType: String?): String {
         if (!customMimeType.isNullOrEmpty()) {
             return customMimeType
@@ -127,6 +126,7 @@ class ManageStorageModule(private val reactContext: ReactApplicationContext) :
 
             val intent = Intent(Intent.ACTION_VIEW).apply {
                 setDataAndType(uri, mimeType)
+                clipData = android.content.ClipData.newRawUri("file", uri)
                 addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
                 addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
             }
@@ -168,11 +168,12 @@ class ManageStorageModule(private val reactContext: ReactApplicationContext) :
             val intent = Intent(Intent.ACTION_SEND).apply {
                 type = mimeType
                 putExtra(Intent.EXTRA_STREAM, uri)
+                clipData = android.content.ClipData.newRawUri("file", uri)
                 addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
             }
 
             val chooser = Intent.createChooser(intent, "Share file").apply {
+                addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
                 addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
             }
 
@@ -218,11 +219,18 @@ class ManageStorageModule(private val reactContext: ReactApplicationContext) :
             val intent = Intent(Intent.ACTION_SEND_MULTIPLE).apply {
                 type = if (uris.size == 1) commonMimeType else "*/*"
                 putParcelableArrayListExtra(Intent.EXTRA_STREAM, uris)
+                if (uris.isNotEmpty()) {
+                    val cd = android.content.ClipData.newRawUri("file", uris[0])
+                    for (j in 1 until uris.size()) {
+                        cd.addItem(android.content.ClipData.Item(uris[j]))
+                    }
+                    clipData = cd
+                }
                 addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
             }
 
             val chooser = Intent.createChooser(intent, "Share files").apply {
+                addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
                 addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
             }
 
