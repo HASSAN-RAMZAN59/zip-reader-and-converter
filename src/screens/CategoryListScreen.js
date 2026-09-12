@@ -1344,16 +1344,18 @@ export const CategoryListScreen = ({ route, navigation }) => {
                 </View>
               </View>
 
-              <GradientButton
-                style={styles.detailActionBtn}
-                onPress={() => {
-                  if (selectedDetailFile && selectedDetailFile.path) {
-                    setDetailModalVisible(false);
-                    openWithSystemApp(selectedDetailFile.path);
-                  }
-                }}
-                title="Open File"
-              />
+              {getExtension(selectedDetailFile?.name || '') !== '.apk' && (
+                <GradientButton
+                  style={styles.detailActionBtn}
+                  onPress={() => {
+                    if (selectedDetailFile && selectedDetailFile.path) {
+                      setDetailModalVisible(false);
+                      openWithSystemApp(selectedDetailFile.path);
+                    }
+                  }}
+                  title="Open File"
+                />
+              )}
 
               <GradientButton
                 style={styles.detailActionBtn}
