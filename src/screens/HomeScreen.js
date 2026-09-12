@@ -156,18 +156,19 @@ export const HomeScreen = ({ navigation }) => {
     };
   }, []);
 
-  // When returning to HomeScreen after extraction/creation, auto-refresh with Lottie loader!
+  // When returning to HomeScreen after extraction/creation or permission grant, auto-refresh with Lottie loader!
   useFocusEffect(
     useCallback(() => {
-      if (pendingRefreshRef.current) {
-        pendingRefreshRef.current = false;
-        permissionsService.checkStoragePermission().then((isGranted) => {
-          if (isGranted) {
+      permissionsService.checkStoragePermission().then((isGranted) => {
+        if (isGranted) {
+          if (pendingRefreshRef.current || !hasInitialScanRun.current) {
+            pendingRefreshRef.current = false;
+            hasInitialScanRun.current = true;
             runFileScan(true);
             fetchStorageInfo();
           }
-        });
-      }
+        }
+      });
     }, [runFileScan, fetchStorageInfo])
   );
 
@@ -178,11 +179,9 @@ export const HomeScreen = ({ navigation }) => {
         const isGranted = await permissionsService.checkStoragePermission();
         if (isGranted) {
           setShowPermissionModal(false);
-          if (!hasInitialScanRun.current) {
-            hasInitialScanRun.current = true;
-            runFileScan(false);
-            fetchStorageInfo();
-          }
+          hasInitialScanRun.current = true;
+          runFileScan(true);
+          fetchStorageInfo();
         }
       }
     });
@@ -219,7 +218,8 @@ export const HomeScreen = ({ navigation }) => {
       const granted = await permissionsService.requestStoragePermission();
       if (granted) {
         setShowPermissionModal(false);
-        runFileScan();
+        hasInitialScanRun.current = true;
+        runFileScan(true);
         fetchStorageInfo();
       }
     } catch (error) {
