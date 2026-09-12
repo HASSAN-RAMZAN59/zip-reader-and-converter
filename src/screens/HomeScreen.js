@@ -81,11 +81,11 @@ export const HomeScreen = ({ navigation }) => {
       const used = total - free;
 
       const toGBNum = (bytes) => (bytes / (1024 * 1024 * 1024)).toFixed(1);
-      
+
       const usedVal = toGBNum(used);
       const totalVal = toGBNum(total);
       const availableVal = toGBNum(free);
-      
+
       const fillPercent = total > 0 ? (used / total) * 100 : 0;
       const fillPercentage = `${Math.min(100, Math.max(0, fillPercent))}%`;
 
@@ -275,7 +275,7 @@ export const HomeScreen = ({ navigation }) => {
             <TouchableOpacity onPress={() => requirePermission(() => { runFileScan(true); fetchStorageInfo(); })} disabled={isScanning} activeOpacity={0.7} style={styles.iconButton}>
               <RefreshIcon width={24} height={24} style={[isScanning && styles.disabledIcon]} />
             </TouchableOpacity>
-            <TouchableOpacity onPress={() => {}} activeOpacity={0.7} style={styles.iconButton}>
+            <TouchableOpacity onPress={() => { }} activeOpacity={0.7} style={styles.iconButton}>
               <SettingsIcon width={24} height={24} />
             </TouchableOpacity>
           </View>
@@ -303,32 +303,36 @@ export const HomeScreen = ({ navigation }) => {
           <View style={styles.storageCardContent}>
             <View style={styles.storageCardLeft}>
               <Text style={styles.storageTitle}>Device Storage</Text>
-              
+
               <Text style={styles.storageText} numberOfLines={1}>
                 <Text style={styles.storageUsed}>{storageInfo.usedVal} GB used</Text>
                 <Text style={styles.storageTotal}> / {storageInfo.totalVal} GB Total</Text>
               </Text>
-              
+
               <View style={styles.progressBarBg}>
                 <View style={[styles.progressBarFill, { width: storageInfo.fillPercentage }]} />
               </View>
-              
+
               <View style={styles.availableRow}>
                 <AvailableSpaceIcon width={12} height={12} />
                 <Text style={styles.availableText}>{storageInfo.availableVal} GB Available</Text>
               </View>
-              
+
               <TouchableOpacity style={styles.createZipBtn} onPress={() => requirePermission(handleCreateZip)} activeOpacity={0.8}>
                 <Text style={styles.createZipBtnText}>Create Zip File</Text>
                 <FolderZipIcon width={16} height={16} style={{ marginLeft: 6 }} />
               </TouchableOpacity>
+            </View>
+
+            <View style={styles.storageCardRight}>
+              <DeviceStorageIllustration width={130} height={87} />
             </View>
           </View>
         </View>
 
         {/* Categories Section */}
         <Text style={styles.categoriesSectionTitle}>Categories</Text>
-        
+
         <FlatList
           data={CATEGORY_UI}
           keyExtractor={(item) => item.id}
@@ -349,12 +353,12 @@ export const HomeScreen = ({ navigation }) => {
           <View style={styles.modalOverlay}>
             <View style={styles.permissionModalBox}>
               <PermissionIllustration width={140} height={120} style={styles.permissionIll} />
-              
+
               <Text style={styles.permissionTitle}>Storage Permission !</Text>
               <Text style={styles.permissionDesc}>
                 Allow Document Reader to access all your Documents on this Device ?
               </Text>
-              
+
               <GradientButton
                 style={[styles.permissionAllowBtn, checkingPermission && styles.disabledIcon]}
                 onPress={handleGrantPermission}
@@ -370,7 +374,7 @@ export const HomeScreen = ({ navigation }) => {
           visible={isScanning}
           transparent={true}
           animationType="fade"
-          onRequestClose={() => {}}
+          onRequestClose={() => { }}
         >
           <View style={styles.lottieModalOverlay}>
             <View style={styles.lottieCard}>
@@ -453,9 +457,15 @@ const styles = StyleSheet.create({
   },
   storageCardLeft: {
     flex: 1,
-    paddingRight: 0,
+    paddingRight: 100,
     justifyContent: 'center',
     zIndex: 2,
+  },
+  storageCardRight: {
+    position: 'absolute',
+    right: 8,
+    bottom: 20,
+    zIndex: 1,
   },
   storageTitle: {
     fontSize: 16,
@@ -484,7 +494,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(255, 255, 255, 0.25)',
     borderRadius: 3,
     marginBottom: 6,
-    width: '100%',
+    width: '82%',
     overflow: 'hidden',
   },
   progressBarFill: {
