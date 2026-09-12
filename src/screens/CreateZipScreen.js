@@ -305,7 +305,6 @@ export const CreateZipScreen = ({ route, navigation }) => {
             />
           </View>
           </View>
-        </View>
 
         {/* Custom Success UI Modal */}
         <Modal
