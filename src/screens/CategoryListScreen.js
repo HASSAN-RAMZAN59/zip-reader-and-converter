@@ -605,7 +605,7 @@ export const CategoryListScreen = ({ route, navigation }) => {
         NativeModules.ManageStorageModule &&
         NativeModules.ManageStorageModule.openFile
       ) {
-        await NativeModules.ManageStorageModule.openFile(filePath, null);
+        await NativeModules.ManageStorageModule.openFile(filePath);
       } else {
         Alert.alert('Open File', `Path: ${filePath}`);
       }

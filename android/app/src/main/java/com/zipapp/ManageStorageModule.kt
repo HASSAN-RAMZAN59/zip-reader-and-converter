@@ -99,11 +99,6 @@ class ManageStorageModule(private val reactContext: ReactApplicationContext) :
 
     @ReactMethod
     fun openFile(filePath: String, promise: Promise) {
-        openFile(filePath, null, promise)
-    }
-
-    @ReactMethod
-    fun openFile(filePath: String, customMimeType: String?, promise: Promise) {
         try {
             val cleanPath = if (filePath.startsWith("file://")) {
                 filePath.substring(7)
@@ -127,7 +122,7 @@ class ManageStorageModule(private val reactContext: ReactApplicationContext) :
                 Uri.fromFile(file)
             }
 
-            val mimeType = getMimeType(file, customMimeType)
+            val mimeType = getMimeType(file, null)
 
             val intent = Intent(Intent.ACTION_VIEW).apply {
                 setDataAndType(uri, mimeType)
@@ -145,11 +140,6 @@ class ManageStorageModule(private val reactContext: ReactApplicationContext) :
 
     @ReactMethod
     fun shareFile(filePath: String, promise: Promise) {
-        shareFile(filePath, null, promise)
-    }
-
-    @ReactMethod
-    fun shareFile(filePath: String, customMimeType: String?, promise: Promise) {
         try {
             val cleanPath = if (filePath.startsWith("file://")) {
                 filePath.substring(7)
@@ -173,7 +163,7 @@ class ManageStorageModule(private val reactContext: ReactApplicationContext) :
                 Uri.fromFile(file)
             }
 
-            val mimeType = getMimeType(file, customMimeType)
+            val mimeType = getMimeType(file, null)
 
             val intent = Intent(Intent.ACTION_SEND).apply {
                 type = mimeType
