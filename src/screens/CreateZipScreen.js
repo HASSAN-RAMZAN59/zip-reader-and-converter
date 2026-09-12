@@ -622,6 +622,10 @@ const styles = StyleSheet.create({
   },
   successDoneBtn: {
     width: '100%',
+    paddingVertical: 14,
+    borderRadius: 28,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
 });
 
