@@ -33,6 +33,7 @@ import {
 import LottieView from 'lottie-react-native';
 import LoadingAnimation from '../assets/Loading.json';
 import { GradientButton } from '../components/GradientButton';
+import { cleanDisplayPath } from '../utils/pathUtils';
 
 // Import Icons from home (used as file type icons)
 import CompressedIcon from '../assets/home/Background.svg';
@@ -1338,7 +1339,7 @@ export const CategoryListScreen = ({ route, navigation }) => {
                     Size: {selectedDetailFile ? formatFileSize(selectedDetailFile.size) : ''}
                   </Text>
                   <Text style={styles.detailInfoPathText} numberOfLines={2}>
-                    Path: {selectedDetailFile ? selectedDetailFile.path : ''}
+                    Path: {selectedDetailFile ? cleanDisplayPath(selectedDetailFile.path) : ''}
                   </Text>
                 </View>
               </View>
@@ -1407,7 +1408,7 @@ export const CategoryListScreen = ({ route, navigation }) => {
               <View style={styles.successPathBox}>
                 <Text style={styles.successPathLabel}>Saved Location:</Text>
                 <Text style={styles.successPathText} numberOfLines={3}>
-                  {successData?.path || ''}
+                  {cleanDisplayPath(successData?.path)}
                 </Text>
               </View>
 

@@ -17,6 +17,7 @@ import {
 import DocumentPicker from 'react-native-document-picker';
 import { createZipArchive } from '../services/ZipService';
 import { GradientButton } from '../components/GradientButton';
+import { cleanDisplayPath } from '../utils/pathUtils';
 
 // Import SVG Assets
 import CompressedIcon from '../assets/home/Background.svg';
@@ -335,7 +336,7 @@ export const CreateZipScreen = ({ route, navigation }) => {
               <View style={styles.successPathBox}>
                 <Text style={styles.successPathLabel}>Saved Location:</Text>
                 <Text style={styles.successPathText} numberOfLines={3}>
-                  {successData?.path || ''}
+                  {cleanDisplayPath(successData?.path)}
                 </Text>
               </View>
 
