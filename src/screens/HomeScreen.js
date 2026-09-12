@@ -325,7 +325,7 @@ export const HomeScreen = ({ navigation }) => {
             </View>
 
             <View style={styles.storageCardRight}>
-              <DeviceStorageIllustration width={126} height={102} />
+              <DeviceStorageIllustration width={132} height={89} />
             </View>
           </View>
         </View>
@@ -463,8 +463,8 @@ const styles = StyleSheet.create({
   },
   storageCardRight: {
     position: 'absolute',
-    right: 0,
-    bottom: 16,
+    right: 14,
+    bottom: 26,
     zIndex: 1,
   },
   storageTitle: {
