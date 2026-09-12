@@ -1,11 +1,11 @@
 <svg width="140" height="94" viewBox="0 0 140 94" fill="none" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
-<rect x="10.5942" width="126.158" height="93.9473" fill="url(#pattern0_774_359)"/>
+<rect x="0" y="0" width="140" height="94" fill="url(#pattern0_774_359)"/>
 <g filter="url(#filter0_dd_774_359)">
 <path d="M10.5942 47.543H114.0V44.734H10.5942V47.543Z" fill="white"/>
 </g>
 <defs>
 <pattern id="pattern0_774_359" patternContentUnits="objectBoundingBox" width="2" height="2">
-<use xlink:href="#image0_774_359" transform="matrix(0.00130208 0 0 0.00174851 -0.184397 -0.742857)"/>
+<use xlink:href="#image0_774_359" transform="matrix(0.00130208 0 0 0.00174851 -0.12 -0.742857)"/>
 </pattern>
 <filter id="filter0_dd_774_359" x="9.53674e-07" y="34.1401" width="139.767" height="23.9971" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
 <feFlood flood-opacity="0" result="BackgroundImageFix"/>
