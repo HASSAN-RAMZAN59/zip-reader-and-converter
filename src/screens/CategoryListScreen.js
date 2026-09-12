@@ -1379,6 +1379,8 @@ export const CategoryListScreen = ({ route, navigation }) => {
                 style={styles.lottieAnimation}
               />
             </View>
+          </View>
+        </Modal>
         {/* 6. Custom Success UI Modal (Extraction & Zip Creation) */}
         <Modal
           visible={successModalVisible}
