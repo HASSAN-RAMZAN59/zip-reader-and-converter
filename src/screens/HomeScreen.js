@@ -304,7 +304,7 @@ export const HomeScreen = ({ navigation }) => {
             <View style={styles.storageCardLeft}>
               <Text style={styles.storageTitle}>Device Storage</Text>
 
-              <Text style={styles.storageText} numberOfLines={1} adjustsFontSizeToFit>
+              <Text style={styles.storageText} numberOfLines={1}>
                 <Text style={styles.storageUsed}>{storageInfo.usedVal} GB used</Text>
                 <Text style={styles.storageTotal}> / {storageInfo.totalVal} GB Total</Text>
               </Text>
@@ -475,11 +475,11 @@ const styles = StyleSheet.create({
     marginBottom: 2,
   },
   storageText: {
-    fontSize: 12.8,
+    fontSize: 14,
     fontFamily: 'Poppins-Regular',
     marginBottom: 6,
     width: '82%',
-    letterSpacing: 0.15,
+    letterSpacing: 0.2,
   },
   storageUsed: {
     color: '#FFFFFF',
