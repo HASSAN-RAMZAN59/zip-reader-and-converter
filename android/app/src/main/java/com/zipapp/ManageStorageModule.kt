@@ -221,7 +221,7 @@ class ManageStorageModule(private val reactContext: ReactApplicationContext) :
                 putParcelableArrayListExtra(Intent.EXTRA_STREAM, uris)
                 if (uris.isNotEmpty()) {
                     val cd = android.content.ClipData.newRawUri("file", uris[0])
-                    for (j in 1 until uris.size()) {
+                    for (j in 1 until uris.size) {
                         cd.addItem(android.content.ClipData.Item(uris[j]))
                     }
                     clipData = cd
