@@ -156,14 +156,17 @@ export const HomeScreen = ({ navigation }) => {
     };
   }, []);
 
-  // When returning to HomeScreen after extraction/creation or permission grant, auto-refresh with Lottie loader!
+  // When returning to HomeScreen after extraction/creation, auto-refresh with Lottie loader!
   useFocusEffect(
     useCallback(() => {
       permissionsService.checkStoragePermission().then((isGranted) => {
         if (isGranted) {
-          if (pendingRefreshRef.current || !hasInitialScanRun.current) {
-            pendingRefreshRef.current = false;
+          if (!hasInitialScanRun.current) {
             hasInitialScanRun.current = true;
+            runFileScan(true);
+            fetchStorageInfo();
+          } else if (pendingRefreshRef.current) {
+            pendingRefreshRef.current = false;
             runFileScan(true);
             fetchStorageInfo();
           }
@@ -172,16 +175,22 @@ export const HomeScreen = ({ navigation }) => {
     }, [runFileScan, fetchStorageInfo])
   );
 
-  // Listen for AppState changes to detect permission grant from settings
+  // Listen for AppState changes to detect permission grant from settings or background return
   useEffect(() => {
     const subscription = AppState.addEventListener('change', async (nextAppState) => {
       if (nextAppState === 'active') {
         const isGranted = await permissionsService.checkStoragePermission();
         if (isGranted) {
           setShowPermissionModal(false);
-          hasInitialScanRun.current = true;
-          runFileScan(true);
-          fetchStorageInfo();
+          if (!hasInitialScanRun.current) {
+            hasInitialScanRun.current = true;
+            runFileScan(true);
+            fetchStorageInfo();
+          } else if (pendingRefreshRef.current) {
+            pendingRefreshRef.current = false;
+            runFileScan(true);
+            fetchStorageInfo();
+          }
         }
       }
     });
