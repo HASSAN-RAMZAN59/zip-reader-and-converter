@@ -65,6 +65,40 @@ class ManageStorageModule(private val reactContext: ReactApplicationContext) :
     }
 
     @ReactMethod
+    private fun getMimeType(file: File, customMimeType: String?): String {
+        if (!customMimeType.isNullOrEmpty()) {
+            return customMimeType
+        }
+        val ext = file.extension.lowercase()
+        if (ext.isEmpty()) {
+            return "*/*"
+        }
+
+        val fromMap = MimeTypeMap.getSingleton().getMimeTypeFromExtension(ext)
+        if (!fromMap.isNullOrEmpty()) {
+            return fromMap
+        }
+
+        return when (ext) {
+            "mp4", "mkv", "avi", "mov", "3gp", "webm", "flv", "wmv" -> "video/*"
+            "mp3", "wav", "aac", "m4a", "flac", "ogg", "wma" -> "audio/*"
+            "pdf" -> "application/pdf"
+            "doc", "docx" -> "application/msword"
+            "xls", "xlsx" -> "application/vnd.ms-excel"
+            "ppt", "pptx" -> "application/vnd.ms-powerpoint"
+            "txt", "csv", "log", "json", "xml" -> "text/plain"
+            "apk" -> "application/vnd.android.package-archive"
+            "zip" -> "application/zip"
+            "rar" -> "application/x-rar-compressed"
+            "7z" -> "application/x-7z-compressed"
+            "tar" -> "application/x-tar"
+            "gz" -> "application/gzip"
+            "png", "jpg", "jpeg", "webp", "gif", "bmp" -> "image/*"
+            else -> "*/*"
+        }
+    }
+
+    @ReactMethod
     fun openFile(filePath: String, customMimeType: String?, promise: Promise) {
         try {
             val cleanPath = if (filePath.startsWith("file://")) {
@@ -89,16 +123,7 @@ class ManageStorageModule(private val reactContext: ReactApplicationContext) :
                 Uri.fromFile(file)
             }
 
-            val mimeType = if (!customMimeType.isNullOrEmpty()) {
-                customMimeType
-            } else {
-                val extension = MimeTypeMap.getFileExtensionFromUrl(Uri.fromFile(file).toString())
-                if (extension.isNotEmpty()) {
-                    MimeTypeMap.getSingleton().getMimeTypeFromExtension(extension.lowercase()) ?: "*/*"
-                } else {
-                    "*/*"
-                }
-            }
+            val mimeType = getMimeType(file, customMimeType)
 
             val intent = Intent(Intent.ACTION_VIEW).apply {
                 setDataAndType(uri, mimeType)
@@ -138,16 +163,7 @@ class ManageStorageModule(private val reactContext: ReactApplicationContext) :
                 Uri.fromFile(file)
             }
 
-            val mimeType = if (!customMimeType.isNullOrEmpty()) {
-                customMimeType
-            } else {
-                val extension = MimeTypeMap.getFileExtensionFromUrl(Uri.fromFile(file).toString())
-                if (extension.isNotEmpty()) {
-                    MimeTypeMap.getSingleton().getMimeTypeFromExtension(extension.lowercase()) ?: "*/*"
-                } else {
-                    "*/*"
-                }
-            }
+            val mimeType = getMimeType(file, customMimeType)
 
             val intent = Intent(Intent.ACTION_SEND).apply {
                 type = mimeType
@@ -157,6 +173,56 @@ class ManageStorageModule(private val reactContext: ReactApplicationContext) :
             }
 
             val chooser = Intent.createChooser(intent, "Share file").apply {
+                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            }
+
+            reactContext.startActivity(chooser)
+            promise.resolve(true)
+        } catch (e: Exception) {
+            promise.reject("SHARE_ERROR", e.message)
+        }
+    }
+
+    @ReactMethod
+    fun shareMultipleFiles(filePaths: com.facebook.react.bridge.ReadableArray, promise: Promise) {
+        try {
+            val uris = ArrayList<Uri>()
+            var commonMimeType = "*/*"
+
+            for (i in 0 until filePaths.size()) {
+                val pathStr = filePaths.getString(i) ?: continue
+                val cleanPath = if (pathStr.startsWith("file://")) pathStr.substring(7) else pathStr
+                val file = File(cleanPath)
+                if (file.exists()) {
+                    val uri: Uri = try {
+                        FileProvider.getUriForFile(
+                            reactContext,
+                            reactContext.packageName + ".provider",
+                            file
+                        )
+                    } catch (e: Exception) {
+                        Uri.fromFile(file)
+                    }
+                    uris.add(uri)
+                    if (i == 0) {
+                        commonMimeType = getMimeType(file, null)
+                    }
+                }
+            }
+
+            if (uris.isEmpty()) {
+                promise.reject("NO_FILES", "No valid files to share.")
+                return
+            }
+
+            val intent = Intent(Intent.ACTION_SEND_MULTIPLE).apply {
+                type = if (uris.size == 1) commonMimeType else "*/*"
+                putParcelableArrayListExtra(Intent.EXTRA_STREAM, uris)
+                addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            }
+
+            val chooser = Intent.createChooser(intent, "Share files").apply {
                 addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
             }
 

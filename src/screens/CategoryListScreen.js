@@ -619,16 +619,27 @@ export const CategoryListScreen = ({ route, navigation }) => {
   };
 
   const handleShareFile = async (targetFilePath = null) => {
-    const filePath = targetFilePath || (selectedDetailFile && selectedDetailFile.path);
-    if (filePath) {
+    let filePaths = [];
+    if (targetFilePath) {
+      filePaths = [targetFilePath];
+    } else if (selectedPaths && selectedPaths.size > 0) {
+      filePaths = Array.from(selectedPaths);
+    } else if (selectedDetailFile && selectedDetailFile.path) {
+      filePaths = [selectedDetailFile.path];
+    }
+
+    if (filePaths.length > 0) {
       try {
-        if (
-          NativeModules.ManageStorageModule &&
-          NativeModules.ManageStorageModule.shareFile
-        ) {
-          await NativeModules.ManageStorageModule.shareFile(filePath, null);
+        if (NativeModules.ManageStorageModule) {
+          if (filePaths.length === 1 && NativeModules.ManageStorageModule.shareFile) {
+            await NativeModules.ManageStorageModule.shareFile(filePaths[0], null);
+          } else if (filePaths.length > 1 && NativeModules.ManageStorageModule.shareMultipleFiles) {
+            await NativeModules.ManageStorageModule.shareMultipleFiles(filePaths);
+          } else if (NativeModules.ManageStorageModule.shareFile) {
+            await NativeModules.ManageStorageModule.shareFile(filePaths[0], null);
+          }
         } else {
-          Alert.alert('Share File', `Path: ${filePath}`);
+          Alert.alert('Share File', `Files: ${filePaths.join(', ')}`);
         }
       } catch (error) {
         console.error('Failed to share file:', error);
