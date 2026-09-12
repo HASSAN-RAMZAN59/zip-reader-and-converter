@@ -325,7 +325,7 @@ export const HomeScreen = ({ navigation }) => {
             </View>
 
             <View style={styles.storageCardRight}>
-              <DeviceStorageIllustration width={132} height={89} />
+              <DeviceStorageIllustration width={126} height={102} />
             </View>
           </View>
         </View>
