@@ -475,11 +475,9 @@ const styles = StyleSheet.create({
     marginBottom: 2,
   },
   storageText: {
-    fontSize: 14,
+    fontSize: 12,
     fontFamily: 'Poppins-Regular',
     marginBottom: 6,
-    width: '82%',
-    letterSpacing: 0.2,
   },
   storageUsed: {
     color: '#FFFFFF',
