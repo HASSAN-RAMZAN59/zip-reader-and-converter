@@ -401,13 +401,13 @@ export const CategoryListScreen = ({ route, navigation }) => {
   const [isEncrypted, setIsEncrypted] = useState(false);
   const [isExtracting, setIsExtracting] = useState(false);
   const [extractingStatus, setExtractingStatus] = useState('');
-  
+
   // New State for Zip Details & Custom Success UI Modal
   const [innerFiles, setInnerFiles] = useState([]);
   const [isLoadingContents, setIsLoadingContents] = useState(false);
   const [pendingTargetDir, setPendingTargetDir] = useState(null);
   const [passwordModalVisible, setPasswordModalVisible] = useState(false);
-  
+
   // Custom Success Modal State
   const [successModalVisible, setSuccessModalVisible] = useState(false);
   const [successData, setSuccessData] = useState(null);
@@ -426,11 +426,11 @@ export const CategoryListScreen = ({ route, navigation }) => {
           .map((entry, index) => {
             const parts = entry.path.split('/');
             const name = parts[parts.length - 1];
-            return { 
-              id: index.toString(), 
-              path: entry.path, 
+            return {
+              id: index.toString(),
+              path: entry.path,
               name: name,
-              size: entry.size 
+              size: entry.size
             };
           });
         setInnerFiles(formatted);
@@ -743,7 +743,7 @@ export const CategoryListScreen = ({ route, navigation }) => {
     );
     const baseName = getArchiveBaseName(selectedArchive.name);
     const targetDir = `${parentDir}/${baseName}`;
-    
+
     if (isEncrypted) {
       setPendingTargetDir(targetDir);
       setPasswordModalVisible(true);
@@ -961,18 +961,18 @@ export const CategoryListScreen = ({ route, navigation }) => {
                   {categoryName === 'Audios' || categoryName === 'Audio'
                     ? 'Audio'
                     : categoryName === 'Videos' || categoryName === 'Video'
-                    ? 'Video'
-                    : categoryName === 'APK' || categoryName === 'Apk'
-                    ? 'APK'
-                    : categoryName === 'Download' || categoryName === 'Downloads'
-                    ? 'Downloads'
-                    : categoryName === 'Extracted'
-                    ? 'Extracted'
-                    : categoryName === 'Documents'
-                    ? 'Document'
-                    : categoryName === 'Images'
-                    ? 'Images'
-                    : 'Compressed'}
+                      ? 'Video'
+                      : categoryName === 'APK' || categoryName === 'Apk'
+                        ? 'APK'
+                        : categoryName === 'Download' || categoryName === 'Downloads'
+                          ? 'Downloads'
+                          : categoryName === 'Extracted'
+                            ? 'Extracted'
+                            : categoryName === 'Documents'
+                              ? 'Document'
+                              : categoryName === 'Images'
+                                ? 'Images'
+                                : 'Compressed'}
                 </Text>
                 <Text style={styles.compressedHeaderSubtitle}>
                   Total Files ( {displayedFiles.length} )
@@ -1263,7 +1263,7 @@ export const CategoryListScreen = ({ route, navigation }) => {
             <TouchableOpacity
               activeOpacity={1}
               style={styles.previewModalContent}
-              onPress={() => {}}
+              onPress={() => { }}
             >
               <View style={styles.previewHeader}>
                 <Text style={styles.previewTitle} numberOfLines={1}>
@@ -1322,9 +1322,9 @@ export const CategoryListScreen = ({ route, navigation }) => {
           animationType="fade"
           onRequestClose={() => setDetailModalVisible(false)}
         >
-          <TouchableOpacity 
-            style={styles.modalOverlay} 
-            activeOpacity={1} 
+          <TouchableOpacity
+            style={styles.modalOverlay}
+            activeOpacity={1}
             onPressOut={() => setDetailModalVisible(false)}
           >
             <View style={styles.detailModalCard}>
@@ -1390,7 +1390,7 @@ export const CategoryListScreen = ({ route, navigation }) => {
           visible={isExtracting}
           transparent={true}
           animationType="fade"
-          onRequestClose={() => {}}
+          onRequestClose={() => { }}
         >
           <View style={styles.lottieModalOverlay}>
             <View style={styles.lottieCard}>
@@ -2153,7 +2153,7 @@ const styles = StyleSheet.create({
   },
   lottieModalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    backgroundColor: 'rgba(0, 0, 0, 0.18)',
     justifyContent: 'center',
     alignItems: 'center',
   },

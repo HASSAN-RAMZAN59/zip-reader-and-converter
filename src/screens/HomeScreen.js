@@ -463,8 +463,8 @@ const styles = StyleSheet.create({
   },
   storageCardRight: {
     position: 'absolute',
-    right: 14,
-    bottom: 24,
+    right: 12,
+    top: 14,
     zIndex: 1,
   },
   storageTitle: {
@@ -628,7 +628,7 @@ const styles = StyleSheet.create({
   },
   lottieModalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    backgroundColor: 'rgba(0, 0, 0, 0.18)',
     justifyContent: 'center',
     alignItems: 'center',
   },
