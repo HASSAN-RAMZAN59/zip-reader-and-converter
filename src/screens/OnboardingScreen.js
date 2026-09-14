@@ -10,7 +10,7 @@ import {
   StatusBar,
 } from 'react-native';
 import { storageService } from '../services/storageService';
-import Svg, { Defs, LinearGradient as SvgGradient, Stop, Rect, Filter, FeDropShadow } from 'react-native-svg';
+import Svg, { Defs, LinearGradient as SvgGradient, RadialGradient, Stop, Rect, Filter, FeDropShadow } from 'react-native-svg';
 
 // Slide 1 SVG Assets
 import ObjectsBg from '../assets/boardings/1/OBJECTS.svg';
@@ -64,7 +64,19 @@ export const SlideItem = React.memo(({ item }) => {
       return (
         <View style={styles.illustrationContainer}>
           {/* Green Glow aura behind phone */}
-          <View style={styles.slide3PhoneGlow} />
+          <View style={styles.slide3PhoneGlowWrapper}>
+            <Svg height="460" width="370" style={styles.slide3PhoneGlowSvg}>
+              <Defs>
+                <RadialGradient id="phoneGlowGrad" cx="50%" cy="40%" r="55%" fx="50%" fy="40%">
+                  <Stop offset="0%" stopColor="#52D868" stopOpacity="0.9" />
+                  <Stop offset="35%" stopColor="#42C657" stopOpacity="0.65" />
+                  <Stop offset="65%" stopColor="#2EAA48" stopOpacity="0.3" />
+                  <Stop offset="100%" stopColor="#138235" stopOpacity="0" />
+                </RadialGradient>
+              </Defs>
+              <Rect x="0" y="0" width="370" height="460" rx="80" fill="url(#phoneGlowGrad)" />
+            </Svg>
+          </View>
 
           {/* Green curved pedestal/ground */}
           <View style={styles.slide3Ground} />
@@ -348,20 +360,14 @@ const styles = StyleSheet.create({
     alignSelf: 'center',
     zIndex: 3,
   },
-  slide3PhoneGlow: {
+  slide3PhoneGlowWrapper: {
     position: 'absolute',
-    top: 8,
+    top: -10,
     alignSelf: 'center',
-    width: 268,
-    height: 345,
-    borderRadius: 36,
-    backgroundColor: 'rgba(76, 175, 80, 0.18)',
-    shadowColor: '#4CAF50',
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.5,
-    shadowRadius: 16,
-    elevation: 2,
     zIndex: 1,
+  },
+  slide3PhoneGlowSvg: {
+    alignSelf: 'center',
   },
   slide3Ground: {
     position: 'absolute',
