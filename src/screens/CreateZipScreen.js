@@ -228,10 +228,7 @@ export const CreateZipScreen = ({ route, navigation }) => {
           data={selectedFiles}
           keyExtractor={(item, index) => `${item.name}-${index}`}
           renderItem={renderFileItem}
-          contentContainerStyle={[
-            styles.listContent,
-            selectedFiles.length === 0 && { flexGrow: 1, justifyContent: 'center' },
-          ]}
+          contentContainerStyle={styles.listContent}
           showsVerticalScrollIndicator={false}
           ListHeaderComponent={
             <View style={styles.formContainer}>
@@ -485,16 +482,14 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   emptyContainer: {
-    flex: 1,
     paddingVertical: 32,
     alignItems: 'center',
     justifyContent: 'center',
   },
   emptyText: {
     fontSize: 14,
-    fontFamily: 'Poppins-Medium',
-    color: '#666666',
-    textAlign: 'center',
+    fontFamily: 'Poppins-Regular',
+    color: '#A0AEC0',
     marginBottom: 12,
   },
   emptyAddBtn: {
