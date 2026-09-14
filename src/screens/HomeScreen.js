@@ -248,7 +248,7 @@ export const HomeScreen = ({ navigation }) => {
         activeOpacity={0.7}
         onPress={() => requirePermission(() => handleCategoryPress(item.id))}
       >
-        <IconComponent width={38} height={38} />
+        <IconComponent width={36} height={36} />
         <View style={styles.categoryTextContainer}>
           <Text style={styles.categoryTitle} numberOfLines={1}>
             {item.title}
@@ -399,7 +399,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFFFFF',
   },
   scrollContent: {
-    paddingHorizontal: 18,
+    paddingHorizontal: 10,
     paddingTop: 16,
     paddingBottom: 24,
   },
@@ -407,7 +407,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 24,
+    marginBottom: 12,
   },
   topHeaderTitle: {
     fontSize: 24,
@@ -436,7 +436,7 @@ const styles = StyleSheet.create({
     aspectRatio: 359 / 159,
     borderRadius: 20,
     backgroundColor: '#004D1E',
-    marginBottom: 20,
+    marginBottom: 12,
     overflow: 'hidden',
     position: 'relative',
     justifyContent: 'center',
@@ -536,10 +536,10 @@ const styles = StyleSheet.create({
   },
   categoriesSectionTitle: {
     fontSize: 16,
-    fontFamily: 'Poppins-Regular',
-    fontWeight: '400',
+    fontFamily: 'Poppins-Bold',
+    fontWeight: '700',
     color: '#333333',
-    marginBottom: 16,
+    marginBottom: 12,
   },
   gridContainer: {
     paddingBottom: 8,
@@ -550,14 +550,14 @@ const styles = StyleSheet.create({
   },
   categoryItem: {
     flex: 1,
-    minHeight: 64,
+    minHeight: 56,
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: '#F4F5F7',
     borderRadius: 14,
-    paddingHorizontal: 8,
-    paddingVertical: 8,
-    marginHorizontal: 5,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    marginHorizontal: 3,
   },
   categoryTextContainer: {
     marginLeft: 8,
