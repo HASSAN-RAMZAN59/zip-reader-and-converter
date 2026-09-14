@@ -32,6 +32,7 @@ import {
 } from '../services/ZipService';
 import LottieView from 'lottie-react-native';
 import LoadingAnimation from '../assets/Loading.json';
+import EmptyBoxAnimation from '../assets/empty-box.json';
 import { GradientButton } from '../components/GradientButton';
 import { cleanDisplayPath } from '../utils/pathUtils';
 
@@ -1018,6 +1019,12 @@ export const CategoryListScreen = ({ route, navigation }) => {
           removeClippedSubviews={true}
           ListEmptyComponent={
             <View style={styles.emptyContainer}>
+              <LottieView
+                source={EmptyBoxAnimation}
+                autoPlay
+                loop
+                style={{ width: 180, height: 180, marginBottom: 12 }}
+              />
               <Text style={styles.emptyText}>
                 {searchQuery.trim()
                   ? `No files match "${searchQuery}"`
@@ -1162,7 +1169,15 @@ export const CategoryListScreen = ({ route, navigation }) => {
                     renderItem={renderInnerFileItem}
                     contentContainerStyle={styles.detailsListContent}
                     ListEmptyComponent={
-                      <Text style={styles.emptyText}>No files could be parsed or archive is empty.</Text>
+                      <View style={styles.emptyContainer}>
+                        <LottieView
+                          source={EmptyBoxAnimation}
+                          autoPlay
+                          loop
+                          style={{ width: 140, height: 140, marginBottom: 8 }}
+                        />
+                        <Text style={styles.emptyText}>No files could be parsed or archive is empty.</Text>
+                      </View>
                     }
                   />
                 )}

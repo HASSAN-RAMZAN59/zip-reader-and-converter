@@ -15,6 +15,8 @@ import {
   DeviceEventEmitter,
 } from 'react-native';
 import DocumentPicker from 'react-native-document-picker';
+import LottieView from 'lottie-react-native';
+import EmptyBoxAnimation from '../assets/empty-box.json';
 import { createZipArchive } from '../services/ZipService';
 import { GradientButton } from '../components/GradientButton';
 import { cleanDisplayPath } from '../utils/pathUtils';
@@ -269,6 +271,12 @@ export const CreateZipScreen = ({ route, navigation }) => {
           }
           ListEmptyComponent={
             <View style={styles.emptyContainer}>
+              <LottieView
+                source={EmptyBoxAnimation}
+                autoPlay
+                loop
+                style={{ width: 180, height: 180, marginBottom: 12 }}
+              />
               <Text style={styles.emptyText}>No files selected yet.</Text>
               <TouchableOpacity
                 style={styles.emptyAddBtn}
