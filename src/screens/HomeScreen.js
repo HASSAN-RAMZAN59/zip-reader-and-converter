@@ -399,7 +399,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFFFFF',
   },
   scrollContent: {
-    paddingHorizontal: 18,
+    paddingHorizontal: 24,
     paddingTop: 16,
     paddingBottom: 24,
   },
@@ -549,14 +549,14 @@ const styles = StyleSheet.create({
   },
   categoryItem: {
     flex: 1,
-    minHeight: 64,
+    minHeight: 74,
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: '#F4F5F7',
-    borderRadius: 14,
-    paddingHorizontal: 8,
-    paddingVertical: 8,
-    marginHorizontal: 5,
+    borderRadius: 16,
+    paddingHorizontal: 10,
+    paddingVertical: 10,
+    marginHorizontal: 6,
   },
   categoryTextContainer: {
     marginLeft: 8,
