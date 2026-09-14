@@ -10,7 +10,7 @@ import {
   StatusBar,
 } from 'react-native';
 import { storageService } from '../services/storageService';
-import Svg, { Defs, LinearGradient as SvgGradient, Stop, Rect } from 'react-native-svg';
+import Svg, { Defs, LinearGradient as SvgGradient, Stop, Rect, Filter, FeDropShadow } from 'react-native-svg';
 
 // Slide 1 SVG Assets
 import ObjectsBg from '../assets/boardings/1/OBJECTS.svg';
@@ -109,7 +109,7 @@ export const SlideItem = React.memo(({ item }) => {
 
         {/* Central Green Folder with Zipper & PDF/PNG files (Foreground) */}
         <View style={styles.mainFolder}>
-          <FolderWithZips width={248} height={253} />
+          <FolderWithZips width={230} height={238} />
         </View>
       </View>
     );
@@ -186,14 +186,25 @@ export const OnboardingScreen = ({ navigation }) => {
             onPress={handleGetStarted}
             activeOpacity={0.8}
           >
-            <Svg height="32" width="68" style={StyleSheet.absoluteFillObject}>
+            <Svg height="48" width="84" style={styles.skipSvgShadow}>
               <Defs>
                 <SvgGradient id="skipBtnGrad" x1="0%" y1="0%" x2="0%" y2="100%">
-                  <Stop offset="0%" stopColor="#84CD4D" stopOpacity="1" />
-                  <Stop offset="100%" stopColor="#138235" stopOpacity="1" />
+                  <Stop offset="0%" stopColor="#7CD549" stopOpacity="1" />
+                  <Stop offset="100%" stopColor="#168B35" stopOpacity="1" />
                 </SvgGradient>
+                <Filter id="skipFeatherShadow" x="-30%" y="-30%" width="170%" height="170%">
+                  <FeDropShadow dx="3.5" dy="4.5" stdDeviation="3.5" floodColor="#000000" floodOpacity="0.45" />
+                </Filter>
               </Defs>
-              <Rect x="0" y="0" width="68" height="32" rx="16" fill="url(#skipBtnGrad)" />
+              <Rect
+                x="6"
+                y="6"
+                width="68"
+                height="32"
+                rx="16"
+                fill="url(#skipBtnGrad)"
+                filter="url(#skipFeatherShadow)"
+              />
             </Svg>
             <Text style={styles.skipButtonText}>Skip</Text>
           </TouchableOpacity>
@@ -227,14 +238,25 @@ export const OnboardingScreen = ({ navigation }) => {
           onPress={handleNext}
           activeOpacity={0.85}
         >
-          <Svg height="52" width={SCREEN_WIDTH * 0.6} style={StyleSheet.absoluteFillObject}>
+          <Svg height="68" width={SCREEN_WIDTH * 0.6 + 16} style={styles.nextSvgShadow}>
             <Defs>
               <SvgGradient id="nextBtnGrad" x1="0%" y1="0%" x2="0%" y2="100%">
-                <Stop offset="0%" stopColor="#84CD4D" stopOpacity="1" />
-                <Stop offset="100%" stopColor="#138235" stopOpacity="1" />
+                <Stop offset="0%" stopColor="#7CD549" stopOpacity="1" />
+                <Stop offset="100%" stopColor="#168B35" stopOpacity="1" />
               </SvgGradient>
+              <Filter id="nextFeatherShadow" x="-30%" y="-30%" width="170%" height="170%">
+                <FeDropShadow dx="3.5" dy="5" stdDeviation="4" floodColor="#000000" floodOpacity="0.45" />
+              </Filter>
             </Defs>
-            <Rect x="0" y="0" width={SCREEN_WIDTH * 0.6} height="52" rx="26" fill="url(#nextBtnGrad)" />
+            <Rect
+              x="6"
+              y="6"
+              width={SCREEN_WIDTH * 0.6}
+              height="52"
+              rx="26"
+              fill="url(#nextBtnGrad)"
+              filter="url(#nextFeatherShadow)"
+            />
           </Svg>
           <Text style={styles.nextButtonText}>
             {isLastSlide ? 'Get Started' : 'Next'}
@@ -278,14 +300,14 @@ const styles = StyleSheet.create({
   skipButton: {
     width: 68,
     height: 32,
-    borderRadius: 16,
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: '#138235',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.35,
-    shadowRadius: 6,
-    elevation: 4,
+    position: 'relative',
+  },
+  skipSvgShadow: {
+    position: 'absolute',
+    top: -6,
+    left: -6,
   },
   skipButtonText: {
     color: '#FFFFFF',
@@ -395,14 +417,14 @@ const styles = StyleSheet.create({
   nextButton: {
     width: SCREEN_WIDTH * 0.6,
     height: 52,
-    borderRadius: 26,
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: '#138235',
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.4,
-    shadowRadius: 8,
-    elevation: 6,
+    position: 'relative',
+  },
+  nextSvgShadow: {
+    position: 'absolute',
+    top: -6,
+    left: -6,
   },
   nextButtonText: {
     color: '#FFFFFF',
