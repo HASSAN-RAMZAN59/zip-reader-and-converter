@@ -1,12 +1,21 @@
 <svg width="408" height="430" viewBox="0 0 408 430" fill="none" xmlns="http://www.w3.org/2000/svg">
-<g filter="url(#filter0_dd_693_359)">
-<circle cx="203.842" cy="212" r="185.5" stroke="#179B38"/>
+<g>
+<circle cx="203.842" cy="212" r="185.5" stroke="#4CAF50" stroke-width="16" opacity="0.10"/>
+<circle cx="203.842" cy="212" r="185.5" stroke="#4CAF50" stroke-width="10" opacity="0.18"/>
+<circle cx="203.842" cy="212" r="185.5" stroke="#4CAF50" stroke-width="5" opacity="0.30"/>
+<circle cx="203.842" cy="212" r="185.5" stroke="#179B38" stroke-width="1.5"/>
 </g>
-<g filter="url(#filter1_dd_693_359)">
-<circle cx="203.842" cy="212" r="136.5" stroke="#179B38"/>
+<g>
+<circle cx="203.842" cy="212" r="136.5" stroke="#4CAF50" stroke-width="16" opacity="0.10"/>
+<circle cx="203.842" cy="212" r="136.5" stroke="#4CAF50" stroke-width="10" opacity="0.18"/>
+<circle cx="203.842" cy="212" r="136.5" stroke="#4CAF50" stroke-width="5" opacity="0.30"/>
+<circle cx="203.842" cy="212" r="136.5" stroke="#179B38" stroke-width="1.5"/>
 </g>
-<g filter="url(#filter2_dd_693_359)">
-<circle cx="203.842" cy="212" r="95.5" stroke="#179B38"/>
+<g>
+<circle cx="203.842" cy="212" r="95.5" stroke="#4CAF50" stroke-width="16" opacity="0.10"/>
+<circle cx="203.842" cy="212" r="95.5" stroke="#4CAF50" stroke-width="10" opacity="0.18"/>
+<circle cx="203.842" cy="212" r="95.5" stroke="#4CAF50" stroke-width="5" opacity="0.30"/>
+<circle cx="203.842" cy="212" r="95.5" stroke="#179B38" stroke-width="1.5"/>
 </g>
 <g clip-path="url(#clip0_693_359)">
 <path d="M319.876 259.605L320.134 166.146C320.145 162.216 316.961 159.024 313.031 159.024H283.575C273.168 160.16 264.095 151.976 264.154 141.507L264.358 105.405C264.38 101.48 261.215 98.2813 257.29 98.2621L192.253 97.9433C192.06 97.9423 191.876 97.863 191.743 97.7234L187.431 93.2067C185.555 91.241 182.956 90.1289 180.238 90.1289H128.383C111.515 90.1289 97.8415 103.803 97.8415 120.67V259.526C97.8415 275.217 110.561 287.937 126.252 287.937H291.466C307.126 287.937 319.833 275.265 319.876 259.605Z" fill="url(#paint0_linear_693_359)"/>
