@@ -248,7 +248,7 @@ export const HomeScreen = ({ navigation }) => {
         activeOpacity={0.7}
         onPress={() => requirePermission(() => handleCategoryPress(item.id))}
       >
-        <IconComponent width={40} height={40} />
+        <IconComponent width={38} height={38} />
         <View style={styles.categoryTextContainer}>
           <Text style={styles.categoryTitle} numberOfLines={1}>
             {item.title}
@@ -549,28 +549,29 @@ const styles = StyleSheet.create({
   },
   categoryItem: {
     flex: 1,
-    height: 56,
+    minHeight: 64,
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: '#F4F5F7',
-    borderRadius: 12,
-    paddingHorizontal: 10,
-    marginHorizontal: 5,
+    borderRadius: 14,
+    paddingHorizontal: 8,
+    paddingVertical: 8,
+    marginHorizontal: 4,
   },
   categoryTextContainer: {
-    marginLeft: 12,
+    marginLeft: 8,
     flex: 1,
   },
   categoryTitle: {
-    fontSize: 14,
+    fontSize: 13.5,
     fontFamily: 'Poppins-Medium',
-    color: '#333333',
-    marginBottom: 2,
+    color: '#262626',
   },
   categoryCount: {
-    fontSize: 12,
+    fontSize: 11.5,
     fontFamily: 'Poppins-Regular',
-    color: '#888888',
+    color: '#777777',
+    marginTop: 1,
   },
   modalOverlay: {
     flex: 1,
