@@ -549,11 +549,12 @@ const styles = StyleSheet.create({
   },
   categoryItem: {
     flex: 1,
+    height: 56,
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: '#F4F5F7',
     borderRadius: 12,
-    padding: 12,
+    paddingHorizontal: 10,
     marginHorizontal: 5,
   },
   categoryTextContainer: {
