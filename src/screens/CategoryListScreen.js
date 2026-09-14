@@ -1012,6 +1012,7 @@ export const CategoryListScreen = ({ route, navigation }) => {
           contentContainerStyle={[
             styles.listContent,
             isSelectionMode && styles.listContentWithBottomBar,
+            displayedFiles.length === 0 && { flexGrow: 1, justifyContent: 'center' },
           ]}
           initialNumToRender={15}
           maxToRenderPerBatch={20}
@@ -1167,7 +1168,10 @@ export const CategoryListScreen = ({ route, navigation }) => {
                     data={innerFiles}
                     keyExtractor={(item) => item.id}
                     renderItem={renderInnerFileItem}
-                    contentContainerStyle={styles.detailsListContent}
+                    contentContainerStyle={[
+                      styles.detailsListContent,
+                      innerFiles.length === 0 && { flexGrow: 1, justifyContent: 'center' },
+                    ]}
                     ListEmptyComponent={
                       <View style={styles.emptyContainer}>
                         <LottieView
@@ -1644,14 +1648,16 @@ const styles = StyleSheet.create({
     color: '#000000',
   },
   emptyContainer: {
-    paddingVertical: 48,
+    flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
+    paddingVertical: 24,
   },
   emptyText: {
     fontSize: 14,
-    fontFamily: 'Poppins-Regular',
-    color: '#000000',
+    fontFamily: 'Poppins-Medium',
+    color: '#666666',
+    textAlign: 'center',
   },
   compressedHeader: {
     flexDirection: 'row',
