@@ -30,6 +30,7 @@ import VideoIcon from '../assets/home/Background (5).svg';
 import APKIcon from '../assets/home/Background (6).svg';
 import DefaultFileIcon from '../assets/home/Background (1).svg';
 import AudioRecordIcon from '../assets/fi_1834342.svg';
+import BackArrowIcon from '../assets/keyboard_arrow_left.svg';
 
 const IMAGE_EXTENSIONS = ['.png', '.jpg', '.jpeg', '.webp', '.heic', '.gif', '.bmp', '.svg'];
 const VIDEO_EXTENSIONS = ['.mp4', '.mkv', '.avi', '.mov', '.3gp', '.webm', '.flv'];
@@ -209,7 +210,7 @@ export const CreateZipScreen = ({ route, navigation }) => {
     <SafeAreaView style={styles.safeArea}>
       <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
       <View style={styles.container}>
-        
+
         {/* Top Header */}
         <View style={styles.topHeader}>
           <TouchableOpacity
@@ -218,7 +219,7 @@ export const CreateZipScreen = ({ route, navigation }) => {
             onPress={() => navigation.goBack()}
             disabled={isCompressing}
           >
-            <Text style={styles.backBtnIcon}>‹</Text>
+            <BackArrowIcon width={24} height={24} fill="#2D3748" />
           </TouchableOpacity>
           <Text style={styles.headerTitle}>Create New Zip</Text>
         </View>
@@ -313,7 +314,7 @@ export const CreateZipScreen = ({ route, navigation }) => {
               title={isCompressing ? 'Compressing...' : 'Compress Now'}
             />
           </View>
-          </View>
+        </View>
 
         {/* Custom Success UI Modal */}
         <Modal

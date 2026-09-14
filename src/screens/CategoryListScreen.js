@@ -23,6 +23,7 @@ import MoreVertIcon from '../assets/more_vert.svg';
 import SearchIcon from '../assets/search.svg';
 import DocumentBlueIcon from '../assets/document/fi_2991108.svg';
 import AudioRecordIcon from '../assets/fi_1834342.svg';
+import BackArrowIcon from '../assets/keyboard_arrow_left.svg';
 import {
   extractZipArchive,
   checkArchiveEncrypted,
@@ -935,6 +936,16 @@ export const CategoryListScreen = ({ route, navigation }) => {
             </>
           ) : isSearchActive ? (
             <View style={styles.searchHeaderContainer}>
+              <TouchableOpacity
+                style={styles.backButton}
+                activeOpacity={0.7}
+                onPress={() => {
+                  setIsSearchActive(false);
+                  setSearchQuery('');
+                }}
+              >
+                <BackArrowIcon width={24} height={24} fill="#1C1B1F" />
+              </TouchableOpacity>
               <TextInput
                 style={styles.searchInput}
                 placeholder={`Search in ${categoryName}...`}
@@ -956,27 +967,36 @@ export const CategoryListScreen = ({ route, navigation }) => {
             </View>
           ) : isSpecialHeaderCategory ? (
             <>
-              <View>
-                <Text style={styles.compressedHeaderTitle}>
-                  {categoryName === 'Audios' || categoryName === 'Audio'
-                    ? 'Audio'
-                    : categoryName === 'Videos' || categoryName === 'Video'
-                      ? 'Video'
-                      : categoryName === 'APK' || categoryName === 'Apk'
-                        ? 'APK'
-                        : categoryName === 'Download' || categoryName === 'Downloads'
-                          ? 'Downloads'
-                          : categoryName === 'Extracted'
-                            ? 'Extracted'
-                            : categoryName === 'Documents'
-                              ? 'Document'
-                              : categoryName === 'Images'
-                                ? 'Images'
-                                : 'Compressed'}
-                </Text>
-                <Text style={styles.compressedHeaderSubtitle}>
-                  Total Files ( {displayedFiles.length} )
-                </Text>
+              <View style={styles.compressedHeaderLeft}>
+                <TouchableOpacity
+                  style={styles.backButton}
+                  activeOpacity={0.7}
+                  onPress={() => navigation.goBack()}
+                >
+                  <BackArrowIcon width={24} height={24} fill="#1C1B1F" />
+                </TouchableOpacity>
+                <View style={styles.compressedTitleCol}>
+                  <Text style={styles.compressedHeaderTitle}>
+                    {categoryName === 'Audios' || categoryName === 'Audio'
+                      ? 'Audio'
+                      : categoryName === 'Videos' || categoryName === 'Video'
+                        ? 'Video'
+                        : categoryName === 'APK' || categoryName === 'Apk'
+                          ? 'APK'
+                          : categoryName === 'Download' || categoryName === 'Downloads'
+                            ? 'Downloads'
+                            : categoryName === 'Extracted'
+                              ? 'Extracted'
+                              : categoryName === 'Documents'
+                                ? 'Document'
+                                : categoryName === 'Images'
+                                  ? 'Images'
+                                  : 'Compressed'}
+                  </Text>
+                  <Text style={styles.compressedHeaderSubtitle}>
+                    Total Files ( {displayedFiles.length} )
+                  </Text>
+                </View>
               </View>
               <TouchableOpacity
                 style={styles.searchButton}
@@ -993,7 +1013,7 @@ export const CategoryListScreen = ({ route, navigation }) => {
                 activeOpacity={0.7}
                 onPress={() => navigation.goBack()}
               >
-                <Text style={styles.backButtonText}>{'< Back'}</Text>
+                <BackArrowIcon width={24} height={24} fill="#1C1B1F" />
               </TouchableOpacity>
               <Text style={styles.headerTitle} numberOfLines={1}>
                 {categoryName} ({displayedFiles.length})
@@ -1467,12 +1487,12 @@ const styles = StyleSheet.create({
     paddingBottom: 12,
   },
   backButton: {
-    borderWidth: 1,
-    borderColor: '#000000',
-    backgroundColor: '#FFFFFF',
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    marginRight: 12,
+    padding: 4,
+    marginLeft: -4,
+    marginRight: 6,
+    marginTop: 3,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   backButtonText: {
     fontSize: 14,
@@ -1666,17 +1686,26 @@ const styles = StyleSheet.create({
     marginBottom: 16,
     paddingBottom: 12,
   },
+  compressedHeaderLeft: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+  },
+  compressedTitleCol: {
+    flexDirection: 'column',
+    alignItems: 'flex-start',
+  },
   compressedHeaderTitle: {
     fontSize: 24,
     fontFamily: 'Poppins-Medium',
     color: '#333333',
     fontWeight: '600',
+    lineHeight: 28,
   },
   compressedHeaderSubtitle: {
     fontSize: 12,
     fontFamily: 'Poppins-Regular',
     color: '#888888',
-    marginTop: -2,
+    marginTop: -5,
   },
   searchButton: {
     padding: 8,
