@@ -52,6 +52,22 @@ const CATEGORY_UI = [
 ];
 
 export const HomeScreen = ({ navigation }) => {
+  const { t } = useLanguage();
+
+  const getCategoryTitle = (id) => {
+    switch (id) {
+      case 'Compressed': return t('compressed');
+      case 'Extracted': return t('extracted');
+      case 'Documents': return t('documents');
+      case 'Images': return t('images');
+      case 'Audios': return t('audio');
+      case 'Videos': return t('video');
+      case 'APK': return 'APK';
+      case 'Download': return t('downloads');
+      default: return id;
+    }
+  };
+
   const [isScanning, setIsScanning] = useState(false);
   const [showPermissionModal, setShowPermissionModal] = useState(false);
   const [checkingPermission, setCheckingPermission] = useState(false);
