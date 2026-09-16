@@ -201,21 +201,6 @@ export const HomeScreen = ({ navigation }) => {
     };
   }, [runFileScan, fetchStorageInfo]);
 
-  const requirePermission = async (action) => {
-    const isGranted = await permissionsService.checkStoragePermission();
-    if (isGranted) {
-      action();
-    } else {
-      setShowPermissionModal(true);
-    }
-  };
-
-  const handleCategoryPress = (categoryName) => {
-    const files = categorizedData[categoryName] || [];
-    navigation.navigate('CategoryList', {
-      categoryName,
-  }, [checkInitialPermissions]);
-
   useEffect(() => {
     const zipCreatedSub = DeviceEventEmitter.addListener('ZIP_CREATED', () => {
       runFileScan(true);
