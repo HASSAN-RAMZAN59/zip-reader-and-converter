@@ -171,9 +171,13 @@ export const SettingScreen = ({ navigation }) => {
               <TouchableOpacity
                 key={lang.code}
                 style={styles.modalOptionRow}
-                onPress={() => {
-                  changeLanguage(lang.code);
+                onPress={async () => {
                   setActiveModal(null);
+                  await changeLanguage(lang.code);
+                  navigation.reset({
+                    index: 0,
+                    routes: [{ name: 'Splash' }],
+                  });
                 }}
               >
                 <Text
