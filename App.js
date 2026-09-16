@@ -5,6 +5,8 @@ import { NavigationContainer } from '@react-navigation/native';
 import AppNavigator from './src/navigation/AppNavigator';
 import { FONTS } from './src/constants/fonts';
 
+import { LanguageProvider } from './src/context/LanguageContext';
+
 // Ensure default font across the entire app is Poppins-Regular
 if (Text.defaultProps == null) {
   Text.defaultProps = {};
@@ -18,11 +20,13 @@ TextInput.defaultProps.style = { fontFamily: FONTS.regular };
 
 const App = () => {
   return (
-    <SafeAreaProvider>
-      <NavigationContainer>
-        <AppNavigator />
-      </NavigationContainer>
-    </SafeAreaProvider>
+    <LanguageProvider>
+      <SafeAreaProvider>
+        <NavigationContainer>
+          <AppNavigator />
+        </NavigationContainer>
+      </SafeAreaProvider>
+    </LanguageProvider>
   );
 };
 

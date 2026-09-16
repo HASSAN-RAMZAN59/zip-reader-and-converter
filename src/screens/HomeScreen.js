@@ -19,6 +19,7 @@ import Svg, { Defs, LinearGradient as SvgGradient, Stop, Rect, Path } from 'reac
 
 import { scanDeviceStorage } from '../services/FileScanner';
 import { permissionsService } from '../services/permissionsService';
+import { useLanguage } from '../context/LanguageContext';
 
 // Import SVG Assets
 import RefreshIcon from '../assets/home/refresh.svg';
@@ -213,21 +214,31 @@ export const HomeScreen = ({ navigation }) => {
     const files = categorizedData[categoryName] || [];
     navigation.navigate('CategoryList', {
       categoryName,
-      files,
-    });
-  };
+  }, [checkInitialPermissions]);
 
-  const handleCreateZip = () => {
-    navigation.navigate('CreateZip');
-  };
+  useEffect(() => {
+    const zipCreatedSub = DeviceEventEmitter.addListener('ZIP_CREATED', () => {
+      runFileScan(true);
+      fetchStorageInfo();
+    });
+
+    const fileDeletedSub = DeviceEventEmitter.addListener('FILE_DELETED', () => {
+      runFileScan(true);
+      fetchStorageInfo();
+    });
+
+    return () => {
+      zipCreatedSub.remove();
+      fileDeletedSub.remove();
+    };
+  }, [runFileScan, fetchStorageInfo]);
 
   const handleGrantPermission = async () => {
     setCheckingPermission(true);
     try {
-      const granted = await permissionsService.requestStoragePermission();
+      const granted = await permissionsService.requestAllFilesAccess();
       if (granted) {
         setShowPermissionModal(false);
-        hasInitialScanRun.current = true;
         runFileScan(true);
         fetchStorageInfo();
       }
@@ -238,9 +249,30 @@ export const HomeScreen = ({ navigation }) => {
     }
   };
 
+  const requirePermission = async (action) => {
+    const hasAccess = await permissionsService.checkAllFilesAccess();
+    if (hasAccess) {
+      action();
+    } else {
+      setShowPermissionModal(true);
+    }
+  };
+
+  const handleCategoryPress = (categoryKey) => {
+    navigation.navigate('CategoryList', {
+      categoryKey,
+      items: categorizedData[categoryKey] || [],
+    });
+  };
+
+  const handleCreateZip = () => {
+    navigation.navigate('CreateZip');
+  };
+
   const renderCategoryItem = ({ item }) => {
     const count = categorizedData[item.id] ? categorizedData[item.id].length : 0;
     const IconComponent = item.icon;
+    const countLabel = count === 1 ? t('item') : t('items');
 
     return (
       <TouchableOpacity
@@ -251,10 +283,10 @@ export const HomeScreen = ({ navigation }) => {
         <IconComponent width={36} height={36} />
         <View style={styles.categoryTextContainer}>
           <Text style={styles.categoryTitle} numberOfLines={1}>
-            {item.title}
+            {getCategoryTitle(item.id)}
           </Text>
           <Text style={styles.categoryCount}>
-            {isScanning ? '...' : `${count} items`}
+            {isScanning ? '...' : `${count} ${countLabel}`}
           </Text>
         </View>
       </TouchableOpacity>
@@ -268,8 +300,8 @@ export const HomeScreen = ({ navigation }) => {
         {/* Header */}
         <View style={styles.topHeader}>
           <View>
-            <Text style={styles.topHeaderTitle}>My Files</Text>
-            <Text style={styles.topHeaderSubtitle}>Manage your archives and files</Text>
+            <Text style={styles.topHeaderTitle}>{t('myFiles')}</Text>
+            <Text style={styles.topHeaderSubtitle}>{t('manageArchivesSubtitle')}</Text>
           </View>
           <View style={styles.headerIcons}>
             <TouchableOpacity onPress={() => requirePermission(() => { runFileScan(true); fetchStorageInfo(); })} disabled={isScanning} activeOpacity={0.7} style={styles.iconButton}>
@@ -302,11 +334,11 @@ export const HomeScreen = ({ navigation }) => {
 
           <View style={styles.storageCardContent}>
             <View style={styles.storageCardLeft}>
-              <Text style={styles.storageTitle}>Device Storage</Text>
+              <Text style={styles.storageTitle}>{t('deviceStorage')}</Text>
 
               <Text style={styles.storageText} numberOfLines={1}>
-                <Text style={styles.storageUsed}>{storageInfo.usedVal} GB used</Text>
-                <Text style={styles.storageTotal}> / {storageInfo.totalVal} GB Total</Text>
+                <Text style={styles.storageUsed}>{storageInfo.usedVal} GB</Text>
+                <Text style={styles.storageTotal}> / {storageInfo.totalVal} GB {t('totalStorage')}</Text>
               </Text>
 
               <View style={styles.progressBarBg}>
@@ -315,11 +347,11 @@ export const HomeScreen = ({ navigation }) => {
 
               <View style={styles.availableRow}>
                 <AvailableSpaceIcon width={12} height={12} />
-                <Text style={styles.availableText}>{storageInfo.availableVal} GB Available</Text>
+                <Text style={styles.availableText}>{storageInfo.availableVal} GB {t('availableSpace')}</Text>
               </View>
 
               <TouchableOpacity style={styles.createZipBtn} onPress={() => requirePermission(handleCreateZip)} activeOpacity={0.8}>
-                <Text style={styles.createZipBtnText}>Create Zip File</Text>
+                <Text style={styles.createZipBtnText}>{t('createZip')}</Text>
                 <FolderZipIcon width={16} height={16} style={{ marginLeft: 6 }} />
               </TouchableOpacity>
             </View>
@@ -331,7 +363,7 @@ export const HomeScreen = ({ navigation }) => {
         </View>
 
         {/* Categories Section */}
-        <Text style={styles.categoriesSectionTitle}>Categories</Text>
+        <Text style={styles.categoriesSectionTitle}>{t('categories')}</Text>
 
         <FlatList
           data={CATEGORY_UI}

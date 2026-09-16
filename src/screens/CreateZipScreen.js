@@ -20,6 +20,7 @@ import EmptyBoxAnimation from '../assets/empty-box.json';
 import { createZipArchive } from '../services/ZipService';
 import { GradientButton } from '../components/GradientButton';
 import { cleanDisplayPath } from '../utils/pathUtils';
+import { useLanguage } from '../context/LanguageContext';
 
 // Import SVG Assets
 import CompressedIcon from '../assets/home/Background.svg';
@@ -87,6 +88,7 @@ const FileItemIcon = ({ item }) => {
 };
 
 export const CreateZipScreen = ({ route, navigation }) => {
+  const { t } = useLanguage();
   const initialFiles = route?.params?.initialFiles || [];
   const defaultNameParam = route?.params?.defaultName || 'My_Archive.zip';
 
@@ -117,34 +119,48 @@ export const CreateZipScreen = ({ route, navigation }) => {
       });
 
       if (results && results.length > 0) {
+        const formatted = results.map((f) => ({
+          name: f.name || 'Selected File',
+          path: f.fileCopyUri || f.uri,
+          size: f.size || 0,
+        }));
+
         setSelectedFiles((prev) => {
-          const newMap = new Map();
-          prev.forEach((f) => newMap.set((f.name || '') + (f.size || 0), f));
-          results.forEach((f) => newMap.set((f.name || '') + (f.size || 0), f));
-          return Array.from(newMap.values());
+          const combined = [...prev, ...formatted];
+          const unique = [];
+          const map = new Map();
+          for (const item of combined) {
+            if (!map.has(item.path)) {
+              map.set(item.path, true);
+              unique.push(item);
+            }
+          }
+          return unique;
         });
       }
     } catch (err) {
-      if (!DocumentPicker.isCancel(err)) {
-        console.error('DocumentPicker error:', err);
-        Alert.alert('Error', 'Failed to pick files.');
+      if (DocumentPicker.isCancel(err)) {
+        console.log('User cancelled document picker');
+      } else {
+        console.error('Document picker error:', err);
+        Alert.alert(t('error'), 'Failed to pick files.');
       }
     }
   };
 
   const handleRemoveFile = (indexToRemove) => {
-    setSelectedFiles((prev) => prev.filter((_, idx) => idx !== indexToRemove));
+    setSelectedFiles((prev) => prev.filter((_, i) => i !== indexToRemove));
   };
 
   const handleCompress = async () => {
     const trimmedName = archiveName.trim();
     if (!trimmedName) {
-      Alert.alert('Missing Name', 'Please enter an Archive Name.');
+      Alert.alert(t('missingName'), t('pleaseEnterArchiveName'));
       return;
     }
 
     if (selectedFiles.length === 0) {
-      Alert.alert('No Files Selected', 'Please select at least one file to compress.');
+      Alert.alert(t('noFilesSelected'), t('pleaseSelectAtLeastOneFile'));
       return;
     }
 
@@ -156,7 +172,7 @@ export const CreateZipScreen = ({ route, navigation }) => {
       DeviceEventEmitter.emit('ZIP_CREATED', result);
 
       setSuccessData({
-        title: 'Zip Created Successfully!',
+        title: t('zipCreatedSuccess'),
         name: result.name || trimmedName,
         path: result.path,
       });
@@ -221,7 +237,7 @@ export const CreateZipScreen = ({ route, navigation }) => {
           >
             <BackArrowIcon width={24} height={24} fill="#2D3748" />
           </TouchableOpacity>
-          <Text style={styles.headerTitle}>Create New Zip</Text>
+          <Text style={styles.headerTitle}>{t('createZipTitle')}</Text>
         </View>
 
         {/* Content Area */}
@@ -235,10 +251,10 @@ export const CreateZipScreen = ({ route, navigation }) => {
             <View style={styles.formContainer}>
               {/* Archive Name */}
               <View style={styles.inputGroup}>
-                <Text style={styles.inputLabel}>Archive Name</Text>
+                <Text style={styles.inputLabel}>{t('archiveName')}</Text>
                 <TextInput
                   style={styles.textInput}
-                  placeholder="My_Archive.zip"
+                  placeholder={t('enterArchiveName')}
                   placeholderTextColor="#A0AEC0"
                   value={archiveName}
                   onChangeText={setArchiveName}
@@ -249,10 +265,10 @@ export const CreateZipScreen = ({ route, navigation }) => {
 
               {/* Optional Password */}
               <View style={styles.inputGroup}>
-                <Text style={styles.inputLabel}>Optional Password</Text>
+                <Text style={styles.inputLabel}>{t('passwordOptional')}</Text>
                 <TextInput
                   style={styles.textInput}
-                  placeholder="Enter password (optional )"
+                  placeholder={t('enterPassword')}
                   placeholderTextColor="#A0AEC0"
                   value={password}
                   onChangeText={setPassword}
@@ -265,7 +281,7 @@ export const CreateZipScreen = ({ route, navigation }) => {
               {/* Selected Files Section Header */}
               <View style={styles.sectionHeaderRow}>
                 <Text style={styles.sectionTitle}>
-                  Selected Files ( {formattedFileCount} )
+                  {t('selectedFiles')} ( {formattedFileCount} )
                 </Text>
               </View>
             </View>
@@ -278,13 +294,13 @@ export const CreateZipScreen = ({ route, navigation }) => {
                 loop
                 style={{ width: 180, height: 180, marginBottom: 12 }}
               />
-              <Text style={styles.emptyText}>No files selected yet.</Text>
+              <Text style={styles.emptyText}>{t('noFilesSelected')}</Text>
               <TouchableOpacity
                 style={styles.emptyAddBtn}
                 onPress={handlePickFiles}
                 activeOpacity={0.8}
               >
-                <Text style={styles.emptyAddBtnText}>+ Select Files</Text>
+                <Text style={styles.emptyAddBtnText}>+ {t('addFiles')}</Text>
               </TouchableOpacity>
             </View>
           }
@@ -295,7 +311,7 @@ export const CreateZipScreen = ({ route, navigation }) => {
           {isCompressing && (
             <View style={styles.loadingRow}>
               <ActivityIndicator size="small" color="#0F7B39" />
-              <Text style={styles.compressingText}>Compressing files...</Text>
+              <Text style={styles.compressingText}>{t('compressing')}</Text>
             </View>
           )}
 
@@ -304,14 +320,14 @@ export const CreateZipScreen = ({ route, navigation }) => {
               style={[styles.pillBtn, isCompressing && styles.disabledBtn]}
               onPress={handlePickFiles}
               disabled={isCompressing}
-              title="Add More"
+              title={t('addFiles')}
             />
 
             <GradientButton
               style={[styles.pillBtn, isCompressing && styles.disabledBtn]}
               onPress={handleCompress}
               disabled={isCompressing}
-              title={isCompressing ? 'Compressing...' : 'Compress Now'}
+              title={isCompressing ? t('compressing') : t('compressFiles')}
             />
           </View>
         </View>

@@ -12,6 +12,8 @@ import {
   Alert,
 } from 'react-native';
 
+import { useLanguage } from '../context/LanguageContext';
+
 // SVG Icons from setting folder
 import GlobeIcon from '../assets/setting/globe_asia.svg';
 import SecurityIcon from '../assets/setting/security.svg';
@@ -20,34 +22,6 @@ import StarIcon from '../assets/setting/family_star.svg';
 import InfoIcon from '../assets/setting/info.svg';
 import ChevronRightIcon from '../assets/setting/arrow_back_ios_new.svg';
 import BackArrowIcon from '../assets/keyboard_arrow_left.svg';
-
-const SETTINGS_OPTIONS = [
-  {
-    id: 'language',
-    title: 'Language',
-    Icon: GlobeIcon,
-  },
-  {
-    id: 'privacy_policy',
-    title: 'Privacy Policy',
-    Icon: SecurityIcon,
-  },
-  {
-    id: 'share_with_friends',
-    title: 'Share with Friends',
-    Icon: ShareIcon,
-  },
-  {
-    id: 'rate_us',
-    title: 'Rate Us',
-    Icon: StarIcon,
-  },
-  {
-    id: 'about',
-    title: 'About',
-    Icon: InfoIcon,
-  },
-];
 
 const LANGUAGES = [
   { code: 'en', name: 'English (Default)' },
@@ -60,9 +34,37 @@ const LANGUAGES = [
 ];
 
 export const SettingScreen = ({ navigation }) => {
+  const { t, currentLanguage, changeLanguage } = useLanguage();
   const [activeModal, setActiveModal] = useState(null); // 'language', 'privacy', 'rate', 'about'
-  const [selectedLanguage, setSelectedLanguage] = useState('en');
   const [rating, setRating] = useState(5);
+
+  const SETTINGS_OPTIONS = [
+    {
+      id: 'language',
+      title: t('language'),
+      Icon: GlobeIcon,
+    },
+    {
+      id: 'privacy_policy',
+      title: t('privacyPolicy'),
+      Icon: SecurityIcon,
+    },
+    {
+      id: 'share_with_friends',
+      title: t('shareWithFriends'),
+      Icon: ShareIcon,
+    },
+    {
+      id: 'rate_us',
+      title: t('rateUs'),
+      Icon: StarIcon,
+    },
+    {
+      id: 'about',
+      title: t('about'),
+      Icon: InfoIcon,
+    },
+  ];
 
   const handleOptionPress = (optionId) => {
     switch (optionId) {
@@ -99,7 +101,7 @@ export const SettingScreen = ({ navigation }) => {
   };
 
   const handleRatingSubmit = () => {
-    Alert.alert('Thank You!', `Thank you for giving us a ${rating}-star rating!`);
+    Alert.alert(t('thankYou'), t('ratingThankYou'));
     setActiveModal(null);
   };
 
@@ -117,7 +119,7 @@ export const SettingScreen = ({ navigation }) => {
           >
             <BackArrowIcon width={24} height={24} />
           </TouchableOpacity>
-          <Text style={styles.headerTitle}>Setting</Text>
+          <Text style={styles.headerTitle}>{t('setting')}</Text>
         </View>
 
         {/* Setting Options List */}
@@ -164,25 +166,25 @@ export const SettingScreen = ({ navigation }) => {
           onPress={() => setActiveModal(null)}
         >
           <View style={styles.modalContent} onStartShouldSetResponder={() => true}>
-            <Text style={styles.modalTitle}>Select Language</Text>
+            <Text style={styles.modalTitle}>{t('selectLanguage')}</Text>
             {LANGUAGES.map((lang) => (
               <TouchableOpacity
                 key={lang.code}
                 style={styles.modalOptionRow}
                 onPress={() => {
-                  setSelectedLanguage(lang.code);
+                  changeLanguage(lang.code);
                   setActiveModal(null);
                 }}
               >
                 <Text
                   style={[
                     styles.modalOptionText,
-                    selectedLanguage === lang.code && styles.modalOptionTextSelected,
+                    currentLanguage === lang.code && styles.modalOptionTextSelected,
                   ]}
                 >
                   {lang.name}
                 </Text>
-                {selectedLanguage === lang.code && (
+                {currentLanguage === lang.code && (
                   <Text style={styles.checkmarkText}>✓</Text>
                 )}
               </TouchableOpacity>
@@ -206,24 +208,18 @@ export const SettingScreen = ({ navigation }) => {
           <View style={styles.modalContentLarge} onStartShouldSetResponder={() => true}>
             <View style={styles.modalHeaderRow}>
               <SecurityIcon width={24} height={24} />
-              <Text style={styles.modalTitleInline}>Privacy Policy</Text>
+              <Text style={styles.modalTitleInline}>{t('privacyPolicy')}</Text>
             </View>
             <ScrollView style={styles.modalScroll}>
               <Text style={styles.modalBodyText}>
-                We value your privacy. Zip Reader & Converter operates locally on your device to create, extract, and manage archive files.
-                {"\n\n"}
-                • <Text style={styles.boldText}>Data Collection:</Text> We do not collect or store your personal files or archives on external servers.
-                {"\n\n"}
-                • <Text style={styles.boldText}>Permissions:</Text> Storage permissions are required strictly to locate, create, and extract zip archives on your device.
-                {"\n\n"}
-                • <Text style={styles.boldText}>Security:</Text> All operations remain completely offline and secure on your local device storage.
+                {t('privacyPolicyContent')}
               </Text>
             </ScrollView>
             <TouchableOpacity
               style={styles.closeBtn}
               onPress={() => setActiveModal(null)}
             >
-              <Text style={styles.closeBtnText}>I Understand</Text>
+              <Text style={styles.closeBtnText}>{t('iUnderstand')}</Text>
             </TouchableOpacity>
           </View>
         </TouchableOpacity>
@@ -244,10 +240,10 @@ export const SettingScreen = ({ navigation }) => {
           <View style={styles.modalContent} onStartShouldSetResponder={() => true}>
             <StarIcon width={36} height={36} style={styles.centerIcon} />
             <Text style={[styles.modalTitle, { textAlign: 'center', marginTop: 10 }]}>
-              Enjoying Zip App?
+              {t('enjoyingZipApp')}
             </Text>
             <Text style={[styles.modalBodyText, { textAlign: 'center', marginBottom: 20 }]}>
-              Tap a star to rate us on the Play Store!
+              {t('tapStarToRate')}
             </Text>
             <View style={styles.starRow}>
               {[1, 2, 3, 4, 5].map((starVal) => (
@@ -266,7 +262,7 @@ export const SettingScreen = ({ navigation }) => {
               style={styles.submitBtn}
               onPress={handleRatingSubmit}
             >
-              <Text style={styles.submitBtnText}>Submit Rating</Text>
+              <Text style={styles.submitBtnText}>{t('submitRating')}</Text>
             </TouchableOpacity>
           </View>
         </TouchableOpacity>
@@ -290,16 +286,16 @@ export const SettingScreen = ({ navigation }) => {
               Zip Reader & Converter
             </Text>
             <Text style={[styles.modalBodyText, { textAlign: 'center', marginVertical: 10 }]}>
-              Version 1.0.0
+              {t('version')}
             </Text>
             <Text style={[styles.modalBodyText, { textAlign: 'center', color: '#666666' }]}>
-              Fast, lightweight & secure file archive reader, creator, and extractor tool.
+              {t('aboutContent')}
             </Text>
             <TouchableOpacity
               style={[styles.closeBtn, { marginTop: 20 }]}
               onPress={() => setActiveModal(null)}
             >
-              <Text style={styles.closeBtnText}>Close</Text>
+              <Text style={styles.closeBtnText}>{t('close')}</Text>
             </TouchableOpacity>
           </View>
         </TouchableOpacity>
