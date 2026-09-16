@@ -349,7 +349,7 @@ export const CreateZipScreen = ({ route, navigation }) => {
               </View>
 
               <Text style={styles.successModalTitle}>
-                {successData?.title || 'Success!'}
+                {successData?.title || t('success')}
               </Text>
 
               {successData?.name ? (
@@ -359,7 +359,7 @@ export const CreateZipScreen = ({ route, navigation }) => {
               ) : null}
 
               <View style={styles.successPathBox}>
-                <Text style={styles.successPathLabel}>Saved Location:</Text>
+                <Text style={styles.successPathLabel}>{t('savedLocation')}:</Text>
                 <Text style={styles.successPathText} numberOfLines={3}>
                   {cleanDisplayPath(successData?.path)}
                 </Text>
@@ -371,7 +371,7 @@ export const CreateZipScreen = ({ route, navigation }) => {
                   setSuccessModalVisible(false);
                   navigation.goBack();
                 }}
-                title="Done"
+                title={t('done')}
               />
             </View>
           </View>

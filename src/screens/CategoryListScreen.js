@@ -739,7 +739,7 @@ export const CategoryListScreen = ({ route, navigation }) => {
       setPendingTargetDir(null);
 
       setSuccessData({
-        title: 'Extraction Successful!',
+        title: t('extractionSuccessful'),
         name: extractedName,
         path: result.extractedPath,
       });
@@ -1454,7 +1454,7 @@ export const CategoryListScreen = ({ route, navigation }) => {
               </View>
 
               <Text style={styles.successModalTitle}>
-                {successData?.title || 'Successful!'}
+                {successData?.title || t('success')}
               </Text>
 
               {successData?.name ? (
@@ -1464,7 +1464,7 @@ export const CategoryListScreen = ({ route, navigation }) => {
               ) : null}
 
               <View style={styles.successPathBox}>
-                <Text style={styles.successPathLabel}>Saved Location:</Text>
+                <Text style={styles.successPathLabel}>{t('savedLocation')}:</Text>
                 <Text style={styles.successPathText} numberOfLines={3}>
                   {cleanDisplayPath(successData?.path)}
                 </Text>
@@ -1475,7 +1475,7 @@ export const CategoryListScreen = ({ route, navigation }) => {
                 onPress={() => {
                   setSuccessModalVisible(false);
                 }}
-                title="Done"
+                title={t('done')}
               />
             </View>
           </View>

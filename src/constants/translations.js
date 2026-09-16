@@ -51,6 +51,9 @@ export const TRANSLATIONS = {
     enterArchivePassword: 'Enter archive password',
     size: 'Size',
     path: 'Path',
+    savedLocation: 'Saved Location',
+    done: 'Done',
+    extractionSuccessful: 'Extraction Successful!',
 
     // Create ZIP Screen
     createZipTitle: 'Create ZIP Archive',
@@ -151,6 +154,9 @@ export const TRANSLATIONS = {
     enterArchivePassword: 'Ingrese contraseña de archivo',
     size: 'Tamaño',
     path: 'Ruta',
+    savedLocation: 'Ubicación Guardada',
+    done: 'Hecho',
+    extractionSuccessful: '¡Extracción Exitosa!',
 
     // Create ZIP Screen
     createZipTitle: 'Crear Archivo ZIP',
@@ -251,6 +257,9 @@ export const TRANSLATIONS = {
     enterArchivePassword: 'Entrez le mot de passe de l’archive',
     size: 'Taille',
     path: 'Chemin',
+    savedLocation: 'Emplacement Enregistré',
+    done: 'Terminé',
+    extractionSuccessful: 'Extraction Réussie !',
 
     // Create ZIP Screen
     createZipTitle: 'Créer une Archive ZIP',
@@ -351,6 +360,9 @@ export const TRANSLATIONS = {
     enterArchivePassword: 'Archivpasswort eingeben',
     size: 'Größe',
     path: 'Pfad',
+    savedLocation: 'Gespeicherter Ort',
+    done: 'Fertig',
+    extractionSuccessful: 'Entpacken Erfolgreich!',
 
     // Create ZIP Screen
     createZipTitle: 'ZIP-Archiv Erstellen',
@@ -451,6 +463,9 @@ export const TRANSLATIONS = {
     enterArchivePassword: 'آرکائیو پاس ورڈ درج کریں',
     size: 'سائز',
     path: 'پاتھ',
+    savedLocation: 'محفوظ کردہ جگہ',
+    done: 'مکمل',
+    extractionSuccessful: 'ان زپ کامیابی سے مکمل!',
 
     // Create ZIP Screen
     createZipTitle: 'ZIP آرکائیو بنائیں',
@@ -551,6 +566,9 @@ export const TRANSLATIONS = {
     enterArchivePassword: 'أدخل كلمة مرور الأرشيف',
     size: 'الحجم',
     path: 'المسار',
+    savedLocation: 'الموقع المحفوظ',
+    done: 'تم',
+    extractionSuccessful: 'تم الاستخراج بنجاح!',
 
     // Create ZIP Screen
     createZipTitle: 'إنشاء أرشيف ZIP',
@@ -628,7 +646,7 @@ export const TRANSLATIONS = {
     noFilesFound: 'कोई फ़ाइल नहीं मिली',
     noFilesInCategory: 'इस कैटेगरी में कोई फ़ाइल उपलब्ध नहीं है।',
     scanFiles: 'फ़ाइलें स्कैन करें',
-    scanning: 'डिवाイス फ़ाइलों की स्कैनिंग हो रही है...',
+    scanning: 'डिवाइस फ़ाइलों की स्कैनिंग हो रही है...',
 
     // File Actions & Dialogs
     extract: 'एक्सट्रैक्ट करें',
@@ -651,6 +669,9 @@ export const TRANSLATIONS = {
     enterArchivePassword: 'आर्काइव पासवर्ड दर्ज करें',
     size: 'साइज़',
     path: 'पाथ',
+    savedLocation: 'सेव किया गया स्थान',
+    done: 'हो गया',
+    extractionSuccessful: 'एक्सट्रैक्शन सफल!',
 
     // Create ZIP Screen
     createZipTitle: 'ZIP आर्काइव बनाएं',
