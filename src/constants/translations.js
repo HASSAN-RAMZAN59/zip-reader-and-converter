@@ -32,7 +32,7 @@ export const TRANSLATIONS = {
 
     // File Actions & Dialogs
     extract: 'Extract',
-    extracting: 'Extracting...',
+    extracting: 'Extracting',
     delete: 'Delete',
     share: 'Share',
     cancel: 'Cancel',
@@ -54,6 +54,12 @@ export const TRANSLATIONS = {
     savedLocation: 'Saved Location',
     done: 'Done',
     extractionSuccessful: 'Extraction Successful!',
+
+    // Zip Extraction Modal
+    zipDetails: 'Zip Details',
+    fileSize: 'File Size',
+    totalFiles: 'Total Files',
+    fileList: 'File List',
 
     // Create ZIP Screen
     createZipTitle: 'Create ZIP Archive',
@@ -135,7 +141,7 @@ export const TRANSLATIONS = {
 
     // File Actions & Dialogs
     extract: 'Extraer',
-    extracting: 'Extrayendo...',
+    extracting: 'Extrayendo',
     delete: 'Eliminar',
     share: 'Compartir',
     cancel: 'Cancelar',
@@ -157,6 +163,12 @@ export const TRANSLATIONS = {
     savedLocation: 'Ubicación Guardada',
     done: 'Hecho',
     extractionSuccessful: '¡Extracción Exitosa!',
+
+    // Zip Extraction Modal
+    zipDetails: 'Detalles del Zip',
+    fileSize: 'Tamaño del Archivo',
+    totalFiles: 'Archivos Totales',
+    fileList: 'Lista de Archivos',
 
     // Create ZIP Screen
     createZipTitle: 'Crear Archivo ZIP',
@@ -192,7 +204,7 @@ export const TRANSLATIONS = {
     ratingThankYou: '¡Gracias por darnos una calificación!',
 
     // Privacy & About text
-    privacyPolicyContent: `Valoramos su privacidad. Zip Reader & Converter funciona localmente en su dispositivo para crear, extraer y gestionar archivos.\n\n• Recopilación de Datos: No recopilamos ni almacenamos sus archivos personales en servidores externos.\n\n• Permisos: Se requieren permisos de almacenamiento estrictamente para ubicar, crear y extraer archivos zip en su dispositivo.\n\n• Seguridad: Todas las operaciones permanecen completamente fuera de línea y seguras en su dispositivo.`,
+    privacyPolicyContent: `Valoramos su privacidad. Zip Reader & Converter funciona localmente en su dispositivo para crear, extraer y gestionar archivos.\n\n• Recopilación de Datos: No recopilamos ni almacenamos sus archivos personales en servidores externos.\n\n• Permisos: Se requieren permisos de almacenamiento strictly para ubicar, crear y extraer archivos zip en su dispositivo.\n\n• Seguridad: Todas las operaciones permanecen completamente fuera de línea y seguras en su dispositivo.`,
     aboutContent: 'Herramienta rápida, ligera y segura para leer, crear y extraer archivos.',
     version: 'Versión 1.0.0',
 
@@ -238,7 +250,7 @@ export const TRANSLATIONS = {
 
     // File Actions & Dialogs
     extract: 'Extraire',
-    extracting: 'Extraction...',
+    extracting: 'Extraction',
     delete: 'Supprimer',
     share: 'Partager',
     cancel: 'Annuler',
@@ -260,6 +272,12 @@ export const TRANSLATIONS = {
     savedLocation: 'Emplacement Enregistré',
     done: 'Terminé',
     extractionSuccessful: 'Extraction Réussie !',
+
+    // Zip Extraction Modal
+    zipDetails: 'Détails du Zip',
+    fileSize: 'Taille du Fichier',
+    totalFiles: 'Fichiers Totaux',
+    fileList: 'Liste des Fichiers',
 
     // Create ZIP Screen
     createZipTitle: 'Créer une Archive ZIP',
@@ -341,7 +359,7 @@ export const TRANSLATIONS = {
 
     // File Actions & Dialogs
     extract: 'Entpacken',
-    extracting: 'Entpacke...',
+    extracting: 'Entpacken',
     delete: 'Löschen',
     share: 'Teilen',
     cancel: 'Abbrechen',
@@ -363,6 +381,12 @@ export const TRANSLATIONS = {
     savedLocation: 'Gespeicherter Ort',
     done: 'Fertig',
     extractionSuccessful: 'Entpacken Erfolgreich!',
+
+    // Zip Extraction Modal
+    zipDetails: 'Zip-Details',
+    fileSize: 'Dateigröße',
+    totalFiles: 'Gesamte Dateien',
+    fileList: 'Dateiliste',
 
     // Create ZIP Screen
     createZipTitle: 'ZIP-Archiv Erstellen',
@@ -444,7 +468,7 @@ export const TRANSLATIONS = {
 
     // File Actions & Dialogs
     extract: 'ان زپ / باھر نکالیں',
-    extracting: 'فائل نکالی جا رہی ہے...',
+    extracting: 'ان زپ پروسیس',
     delete: 'حذف کریں',
     share: 'شیئر کریں',
     cancel: 'منسوخ کریں',
@@ -466,6 +490,12 @@ export const TRANSLATIONS = {
     savedLocation: 'محفوظ کردہ جگہ',
     done: 'مکمل',
     extractionSuccessful: 'ان زپ کامیابی سے مکمل!',
+
+    // Zip Extraction Modal
+    zipDetails: 'زپ کی تفصیلات',
+    fileSize: 'فائل کا سائز',
+    totalFiles: 'کل فائلیں',
+    fileList: 'فائلوں کی فہرست',
 
     // Create ZIP Screen
     createZipTitle: 'ZIP آرکائیو بنائیں',
@@ -547,7 +577,7 @@ export const TRANSLATIONS = {
 
     // File Actions & Dialogs
     extract: 'استخراج',
-    extracting: 'جاري الاستخراج...',
+    extracting: 'استخراج الأرشيف',
     delete: 'حذف',
     share: 'مشاركة',
     cancel: 'إلغاء',
@@ -569,6 +599,12 @@ export const TRANSLATIONS = {
     savedLocation: 'الموقع المحفوظ',
     done: 'تم',
     extractionSuccessful: 'تم الاستخراج بنجاح!',
+
+    // Zip Extraction Modal
+    zipDetails: 'تفاصيل الأرشيف',
+    fileSize: 'حجم الملف',
+    totalFiles: 'إجمالي الملفات',
+    fileList: 'قائمة الملفات',
 
     // Create ZIP Screen
     createZipTitle: 'إنشاء أرشيف ZIP',
@@ -650,7 +686,7 @@ export const TRANSLATIONS = {
 
     // File Actions & Dialogs
     extract: 'एक्सट्रैक्ट करें',
-    extracting: 'एक्सट्रैक्ट हो रहा है...',
+    extracting: 'एक्सट्रैक्टिंग',
     delete: 'हटाएं',
     share: 'शेयर करें',
     cancel: 'रद्द करें',
@@ -672,6 +708,12 @@ export const TRANSLATIONS = {
     savedLocation: 'सेव किया गया स्थान',
     done: 'हो गया',
     extractionSuccessful: 'एक्सट्रैक्शन सफल!',
+
+    // Zip Extraction Modal
+    zipDetails: 'ज़िप विवरण',
+    fileSize: 'फ़ाइल का साइज़',
+    totalFiles: 'कुल फ़ाइलें',
+    fileList: 'फ़ाइल सूची',
 
     // Create ZIP Screen
     createZipTitle: 'ZIP आर्काइव बनाएं',

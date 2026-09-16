@@ -1178,25 +1178,25 @@ export const CategoryListScreen = ({ route, navigation }) => {
               <View style={styles.detailsHeader}>
                 <View style={styles.detailsHeaderLeft}>
                   <TouchableOpacity onPress={closeExtractModal} style={styles.detailsBackButton}>
-                    <Text style={styles.detailsBackButtonText}>{'< Back'}</Text>
+                    <Text style={styles.detailsBackButtonText}>{`< ${t('cancel')}`}</Text>
                   </TouchableOpacity>
-                  <Text style={styles.detailsHeaderTitle}>Extracting</Text>
+                  <Text style={styles.detailsHeaderTitle}>{t('extracting')}</Text>
                 </View>
               </View>
 
               {/* Zip Details Section */}
-              <Text style={styles.sectionTitle}>Zip Details</Text>
+              <Text style={styles.sectionTitle}>{t('zipDetails')}</Text>
               <View style={styles.detailCard}>
-                <Text style={styles.detailLabel}>File Size</Text>
+                <Text style={styles.detailLabel}>{t('fileSize')}</Text>
                 <Text style={styles.detailValue}>{selectedArchive ? formatFileSize(selectedArchive.size) : '0 B'}</Text>
               </View>
               <View style={styles.detailCard}>
-                <Text style={styles.detailLabel}>Total Files</Text>
-                <Text style={styles.detailValue}>{isLoadingContents ? 'Loading...' : innerFiles.length}</Text>
+                <Text style={styles.detailLabel}>{t('totalFiles')}</Text>
+                <Text style={styles.detailValue}>{isLoadingContents ? t('scanning') : innerFiles.length}</Text>
               </View>
 
               {/* File List Section */}
-              <Text style={styles.sectionTitle}>File List</Text>
+              <Text style={styles.sectionTitle}>{t('fileList')}</Text>
               <View style={styles.detailsListContainer}>
                 {isLoadingContents ? (
                   <ActivityIndicator size="large" color="#4CAF50" style={{ marginTop: 20 }} />
@@ -1217,7 +1217,7 @@ export const CategoryListScreen = ({ route, navigation }) => {
                           loop
                           style={{ width: 140, height: 140, marginBottom: 8 }}
                         />
-                        <Text style={styles.emptyText}>No files could be parsed or archive is empty.</Text>
+                        <Text style={styles.emptyText}>{t('noFilesInCategory')}</Text>
                       </View>
                     }
                   />
