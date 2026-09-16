@@ -402,7 +402,8 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 24,
-    fontFamily: 'Poppins-Medium',
+    fontWeight: 'bold',
+    fontFamily: 'Poppins-Bold',
     color: '#181E1A',
     textAlign: 'center',
     marginBottom: 10,
