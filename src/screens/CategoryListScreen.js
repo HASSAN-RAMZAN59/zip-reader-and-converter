@@ -376,7 +376,7 @@ export const CategoryListScreen = ({ route, navigation }) => {
     return () => {
       isMounted = false;
     };
-  }, [isExtracted, files]);
+  }, [isExtracted, incomingFiles]);
 
   // Real-time Search State
   const [isSearchActive, setIsSearchActive] = useState(false);
