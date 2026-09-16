@@ -36,6 +36,7 @@ import LoadingAnimation from '../assets/Loading.json';
 import EmptyBoxAnimation from '../assets/empty-box.json';
 import { GradientButton } from '../components/GradientButton';
 import { cleanDisplayPath } from '../utils/pathUtils';
+import { useLanguage } from '../context/LanguageContext';
 
 // Import Icons from home (used as file type icons)
 import CompressedIcon from '../assets/home/Background.svg';
@@ -278,14 +279,16 @@ const ItemIconThumbnail = React.memo(({ item, isDownload, isExtracted }) => {
 });
 
 export const CategoryListScreen = ({ route, navigation }) => {
-  const { categoryName = 'Files', files = [] } = route.params || {};
+  const { t } = useLanguage();
+  const categoryName = route?.params?.categoryName || route?.params?.categoryKey || 'Files';
+  const incomingFiles = route?.params?.files || route?.params?.items || [];
 
   const isDownload = categoryName === 'Download' || categoryName === 'Downloads';
   const isExtracted = categoryName === 'Extracted';
 
   // Safe file list filtering
-  const validFiles = Array.isArray(files)
-    ? files.filter((f) => f && typeof f === 'object' && f.name)
+  const validFiles = Array.isArray(incomingFiles)
+    ? incomingFiles.filter((f) => f && typeof f === 'object' && f.name)
     : [];
 
   const [fileList, setFileList] = useState(validFiles);

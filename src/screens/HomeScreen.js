@@ -259,10 +259,11 @@ export const HomeScreen = ({ navigation }) => {
     }
   };
 
-  const handleCategoryPress = (categoryKey) => {
+  const handleCategoryPress = (categoryName) => {
+    const files = categorizedData[categoryName] || [];
     navigation.navigate('CategoryList', {
-      categoryKey,
-      items: categorizedData[categoryKey] || [],
+      categoryName,
+      files,
     });
   };
 
