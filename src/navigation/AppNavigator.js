@@ -7,6 +7,8 @@ import HomeScreen from '../screens/HomeScreen';
 import CategoryListScreen from '../screens/CategoryListScreen';
 import CreateZipScreen from '../screens/CreateZipScreen';
 
+import SettingScreen from '../screens/SettingScreen';
+
 const Stack = createNativeStackNavigator();
 
 export const AppNavigator = () => {
@@ -45,6 +47,11 @@ export const AppNavigator = () => {
       <Stack.Screen
         name="CreateZip"
         component={CreateZipScreen}
+        options={{ animation: 'slide_from_right' }}
+      />
+      <Stack.Screen
+        name="Setting"
+        component={SettingScreen}
         options={{ animation: 'slide_from_right' }}
       />
     </Stack.Navigator>

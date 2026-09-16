@@ -275,7 +275,7 @@ export const HomeScreen = ({ navigation }) => {
             <TouchableOpacity onPress={() => requirePermission(() => { runFileScan(true); fetchStorageInfo(); })} disabled={isScanning} activeOpacity={0.7} style={styles.iconButton}>
               <RefreshIcon width={24} height={24} style={[isScanning && styles.disabledIcon]} />
             </TouchableOpacity>
-            <TouchableOpacity onPress={() => { }} activeOpacity={0.7} style={styles.iconButton}>
+            <TouchableOpacity onPress={() => navigation.navigate('Setting')} activeOpacity={0.7} style={styles.iconButton}>
               <SettingsIcon width={24} height={24} />
             </TouchableOpacity>
           </View>
