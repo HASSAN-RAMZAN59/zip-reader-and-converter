@@ -283,6 +283,34 @@ export const CategoryListScreen = ({ route, navigation }) => {
   const categoryName = route?.params?.categoryName || route?.params?.categoryKey || 'Files';
   const incomingFiles = route?.params?.files || route?.params?.items || [];
 
+  const getLocalizedCategoryTitle = (name) => {
+    switch (name) {
+      case 'Compressed':
+        return t('compressed');
+      case 'Extracted':
+        return t('extracted');
+      case 'Documents':
+      case 'Document':
+        return t('documents');
+      case 'Images':
+        return t('images');
+      case 'Audios':
+      case 'Audio':
+        return t('audio');
+      case 'Videos':
+      case 'Video':
+        return t('video');
+      case 'APK':
+      case 'Apk':
+        return 'APK';
+      case 'Download':
+      case 'Downloads':
+        return t('downloads');
+      default:
+        return name;
+    }
+  };
+
   const isDownload = categoryName === 'Download' || categoryName === 'Downloads';
   const isExtracted = categoryName === 'Extracted';
 
@@ -951,7 +979,7 @@ export const CategoryListScreen = ({ route, navigation }) => {
               </TouchableOpacity>
               <TextInput
                 style={styles.searchInput}
-                placeholder={`Search in ${categoryName}...`}
+                placeholder={t('searchFiles')}
                 placeholderTextColor="#888888"
                 value={searchQuery}
                 onChangeText={setSearchQuery}
@@ -980,24 +1008,10 @@ export const CategoryListScreen = ({ route, navigation }) => {
                 </TouchableOpacity>
                 <View style={styles.compressedTitleCol}>
                   <Text style={styles.compressedHeaderTitle}>
-                    {categoryName === 'Audios' || categoryName === 'Audio'
-                      ? 'Audio'
-                      : categoryName === 'Videos' || categoryName === 'Video'
-                        ? 'Video'
-                        : categoryName === 'APK' || categoryName === 'Apk'
-                          ? 'APK'
-                          : categoryName === 'Download' || categoryName === 'Downloads'
-                            ? 'Downloads'
-                            : categoryName === 'Extracted'
-                              ? 'Extracted'
-                              : categoryName === 'Documents'
-                                ? 'Document'
-                                : categoryName === 'Images'
-                                  ? 'Images'
-                                  : 'Compressed'}
+                    {getLocalizedCategoryTitle(categoryName)}
                   </Text>
                   <Text style={styles.compressedHeaderSubtitle}>
-                    Total Files ( {displayedFiles.length} )
+                    {t('allFiles')} ( {displayedFiles.length} )
                   </Text>
                 </View>
               </View>
@@ -1019,7 +1033,7 @@ export const CategoryListScreen = ({ route, navigation }) => {
                 <BackArrowIcon width={24} height={24} fill="#1C1B1F" />
               </TouchableOpacity>
               <Text style={styles.headerTitle} numberOfLines={1}>
-                {categoryName} ({displayedFiles.length})
+                {getLocalizedCategoryTitle(categoryName)} ({displayedFiles.length})
               </Text>
             </>
           )}
