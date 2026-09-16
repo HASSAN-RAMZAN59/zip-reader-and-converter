@@ -237,7 +237,7 @@ export const HomeScreen = ({ navigation }) => {
   const handleGrantPermission = async () => {
     setCheckingPermission(true);
     try {
-      const granted = await permissionsService.requestAllFilesAccess();
+      const granted = await permissionsService.requestStoragePermission();
       if (granted) {
         setShowPermissionModal(false);
         runFileScan(true);
@@ -251,11 +251,16 @@ export const HomeScreen = ({ navigation }) => {
   };
 
   const requirePermission = async (action) => {
-    const hasAccess = await permissionsService.checkAllFilesAccess();
-    if (hasAccess) {
+    try {
+      const hasAccess = await permissionsService.checkStoragePermission();
+      if (hasAccess) {
+        action();
+      } else {
+        setShowPermissionModal(true);
+      }
+    } catch (error) {
+      console.error('Permission check error:', error);
       action();
-    } else {
-      setShowPermissionModal(true);
     }
   };
 
