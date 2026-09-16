@@ -13,7 +13,6 @@ import {
 } from 'react-native';
 
 // SVG Icons from setting folder
-import DeleteIcon from '../assets/setting/delete.svg';
 import GlobeIcon from '../assets/setting/globe_asia.svg';
 import SecurityIcon from '../assets/setting/security.svg';
 import ShareIcon from '../assets/setting/share.svg';
@@ -23,11 +22,6 @@ import ChevronRightIcon from '../assets/setting/arrow_back_ios_new.svg';
 import BackArrowIcon from '../assets/keyboard_arrow_left.svg';
 
 const SETTINGS_OPTIONS = [
-  {
-    id: 'recycle_bin',
-    title: 'Recycle Bin',
-    Icon: DeleteIcon,
-  },
   {
     id: 'language',
     title: 'Language',
@@ -66,15 +60,12 @@ const LANGUAGES = [
 ];
 
 export const SettingScreen = ({ navigation }) => {
-  const [activeModal, setActiveModal] = useState(null); // 'recycle', 'language', 'privacy', 'rate', 'about'
+  const [activeModal, setActiveModal] = useState(null); // 'language', 'privacy', 'rate', 'about'
   const [selectedLanguage, setSelectedLanguage] = useState('en');
   const [rating, setRating] = useState(5);
 
   const handleOptionPress = (optionId) => {
     switch (optionId) {
-      case 'recycle_bin':
-        setActiveModal('recycle');
-        break;
       case 'language':
         setActiveModal('language');
         break;
@@ -196,36 +187,6 @@ export const SettingScreen = ({ navigation }) => {
                 )}
               </TouchableOpacity>
             ))}
-          </View>
-        </TouchableOpacity>
-      </Modal>
-
-      {/* Recycle Bin Modal */}
-      <Modal
-        visible={activeModal === 'recycle'}
-        transparent
-        animationType="fade"
-        onRequestClose={() => setActiveModal(null)}
-      >
-        <TouchableOpacity
-          style={styles.modalOverlay}
-          activeOpacity={1}
-          onPress={() => setActiveModal(null)}
-        >
-          <View style={styles.modalContent} onStartShouldSetResponder={() => true}>
-            <View style={styles.modalHeaderRow}>
-              <DeleteIcon width={28} height={28} />
-              <Text style={styles.modalTitleInline}>Recycle Bin</Text>
-            </View>
-            <Text style={styles.modalBodyText}>
-              Your Recycle Bin is currently empty. Deleted files will appear here before permanent deletion.
-            </Text>
-            <TouchableOpacity
-              style={styles.closeBtn}
-              onPress={() => setActiveModal(null)}
-            >
-              <Text style={styles.closeBtnText}>Close</Text>
-            </TouchableOpacity>
           </View>
         </TouchableOpacity>
       </Modal>
