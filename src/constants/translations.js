@@ -30,7 +30,7 @@ export const TRANSLATIONS = {
     scanFiles: 'Scan Files',
     scanning: 'Scanning device for files...',
 
-    // File Actions
+    // File Actions & Dialogs
     extract: 'Extract',
     extracting: 'Extracting...',
     delete: 'Delete',
@@ -41,6 +41,16 @@ export const TRANSLATIONS = {
     details: 'Details',
     success: 'Success',
     error: 'Error',
+    fileDetails: 'File Details',
+    openFile: 'Open File',
+    shareFile: 'Share File',
+    extractHere: 'Extract Here',
+    chooseCustomFolder: 'Choose Custom Folder',
+    openInGallery: 'Open in Gallery',
+    passwordRequired: 'Password Required',
+    enterArchivePassword: 'Enter archive password',
+    size: 'Size',
+    path: 'Path',
 
     // Create ZIP Screen
     createZipTitle: 'Create ZIP Archive',
@@ -120,7 +130,7 @@ export const TRANSLATIONS = {
     scanFiles: 'Escanear Archivos',
     scanning: 'Escaneando archivos en el dispositivo...',
 
-    // File Actions
+    // File Actions & Dialogs
     extract: 'Extraer',
     extracting: 'Extrayendo...',
     delete: 'Eliminar',
@@ -131,6 +141,16 @@ export const TRANSLATIONS = {
     details: 'Detalles',
     success: 'Éxito',
     error: 'Error',
+    fileDetails: 'Detalles del Archivo',
+    openFile: 'Abrir Archivo',
+    shareFile: 'Compartir Archivo',
+    extractHere: 'Extraer Aquí',
+    chooseCustomFolder: 'Elegir Carpeta Personalizada',
+    openInGallery: 'Abrir en Galería',
+    passwordRequired: 'Contraseña Requerida',
+    enterArchivePassword: 'Ingrese contraseña de archivo',
+    size: 'Tamaño',
+    path: 'Ruta',
 
     // Create ZIP Screen
     createZipTitle: 'Crear Archivo ZIP',
@@ -210,7 +230,7 @@ export const TRANSLATIONS = {
     scanFiles: 'Analyser les Fichiers',
     scanning: 'Analyse des fichiers sur l’appareil...',
 
-    // File Actions
+    // File Actions & Dialogs
     extract: 'Extraire',
     extracting: 'Extraction...',
     delete: 'Supprimer',
@@ -221,6 +241,16 @@ export const TRANSLATIONS = {
     details: 'Détails',
     success: 'Succès',
     error: 'Erreur',
+    fileDetails: 'Détails du Fichier',
+    openFile: 'Ouvrir le Fichier',
+    shareFile: 'Partager le Fichier',
+    extractHere: 'Extraire Ici',
+    chooseCustomFolder: 'Choisir un Dossier Personnalisé',
+    openInGallery: 'Ouvrir dans la Galerie',
+    passwordRequired: 'Mot de Passe Requis',
+    enterArchivePassword: 'Entrez le mot de passe de l’archive',
+    size: 'Taille',
+    path: 'Chemin',
 
     // Create ZIP Screen
     createZipTitle: 'Créer une Archive ZIP',
@@ -300,7 +330,7 @@ export const TRANSLATIONS = {
     scanFiles: 'Dateien Scannen',
     scanning: 'Gerät wird nach Dateien durchsucht...',
 
-    // File Actions
+    // File Actions & Dialogs
     extract: 'Entpacken',
     extracting: 'Entpacke...',
     delete: 'Löschen',
@@ -311,6 +341,16 @@ export const TRANSLATIONS = {
     details: 'Details',
     success: 'Erfolg',
     error: 'Fehler',
+    fileDetails: 'Dateidetails',
+    openFile: 'Datei Öffnen',
+    shareFile: 'Datei Teilen',
+    extractHere: 'Hier Entpacken',
+    chooseCustomFolder: 'Benutzerdefinierten Ordner Wählen',
+    openInGallery: 'In Galerie Öffnen',
+    passwordRequired: 'Passwort Erforderlich',
+    enterArchivePassword: 'Archivpasswort eingeben',
+    size: 'Größe',
+    path: 'Pfad',
 
     // Create ZIP Screen
     createZipTitle: 'ZIP-Archiv Erstellen',
@@ -390,7 +430,7 @@ export const TRANSLATIONS = {
     scanFiles: 'فائلیں اسکین کریں',
     scanning: 'ڈیوائس میں فائلیں اسکین ہو رہی ہیں...',
 
-    // File Actions
+    // File Actions & Dialogs
     extract: 'ان زپ / باھر نکالیں',
     extracting: 'فائل نکالی جا رہی ہے...',
     delete: 'حذف کریں',
@@ -401,6 +441,16 @@ export const TRANSLATIONS = {
     details: 'تفصیلات',
     success: 'کامیابی',
     error: 'خرابی',
+    fileDetails: 'فائل کی تفصیلات',
+    openFile: 'فائل کھولیں',
+    shareFile: 'فائل شیئر کریں',
+    extractHere: 'یہاں ان زپ کریں',
+    chooseCustomFolder: 'کسٹم فولڈر منتخب کریں',
+    openInGallery: 'گیلری میں کھولیں',
+    passwordRequired: 'پاس ورڈ درکار ہے',
+    enterArchivePassword: 'آرکائیو پاس ورڈ درج کریں',
+    size: 'سائز',
+    path: 'پاتھ',
 
     // Create ZIP Screen
     createZipTitle: 'ZIP آرکائیو بنائیں',
@@ -480,7 +530,7 @@ export const TRANSLATIONS = {
     scanFiles: 'مسح الملفات',
     scanning: 'جاري فحص الملفات في الجهاز...',
 
-    // File Actions
+    // File Actions & Dialogs
     extract: 'استخراج',
     extracting: 'جاري الاستخراج...',
     delete: 'حذف',
@@ -491,6 +541,16 @@ export const TRANSLATIONS = {
     details: 'التفاصيل',
     success: 'نجاح',
     error: 'خطأ',
+    fileDetails: 'تفاصيل الملف',
+    openFile: 'فتح الملف',
+    shareFile: 'مشاركة الملف',
+    extractHere: 'استخراج هنا',
+    chooseCustomFolder: 'اختيار مجلد مخصص',
+    openInGallery: 'فتح في المعرض',
+    passwordRequired: 'كلمة المرور مطلوبة',
+    enterArchivePassword: 'أدخل كلمة مرور الأرشيف',
+    size: 'الحجم',
+    path: 'المسار',
 
     // Create ZIP Screen
     createZipTitle: 'إنشاء أرشيف ZIP',
@@ -568,9 +628,9 @@ export const TRANSLATIONS = {
     noFilesFound: 'कोई फ़ाइल नहीं मिली',
     noFilesInCategory: 'इस कैटेगरी में कोई फ़ाइल उपलब्ध नहीं है।',
     scanFiles: 'फ़ाइलें स्कैन करें',
-    scanning: 'डिवाइस फ़ाइलों की स्कैनिंग हो रही है...',
+    scanning: 'डिवाイス फ़ाइलों की स्कैनिंग हो रही है...',
 
-    // File Actions
+    // File Actions & Dialogs
     extract: 'एक्सट्रैक्ट करें',
     extracting: 'एक्सट्रैक्ट हो रहा है...',
     delete: 'हटाएं',
@@ -581,6 +641,16 @@ export const TRANSLATIONS = {
     details: 'विवरण',
     success: 'सफलता',
     error: 'त्रुटि',
+    fileDetails: 'फ़ाइल विवरण',
+    openFile: 'फ़ाइल खोलें',
+    shareFile: 'फ़ाइल शेयर करें',
+    extractHere: 'यहां एक्सट्रैक्ट करें',
+    chooseCustomFolder: 'कस्टम फ़ोल्डर चुनें',
+    openInGallery: 'गैलरी में खोलें',
+    passwordRequired: 'पासवर्ड आवश्यक है',
+    enterArchivePassword: 'आर्काइव पासवर्ड दर्ज करें',
+    size: 'साइज़',
+    path: 'पाथ',
 
     // Create ZIP Screen
     createZipTitle: 'ZIP आर्काइव बनाएं',

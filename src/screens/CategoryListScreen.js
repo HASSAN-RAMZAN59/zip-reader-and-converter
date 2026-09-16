@@ -1226,8 +1226,8 @@ export const CategoryListScreen = ({ route, navigation }) => {
 
               {/* Bottom Actions */}
               <View style={styles.detailsBottomActions}>
-                <GradientButton style={styles.detailsExtractBtn} onPress={handleExtractHere} title="Extract Here" />
-                <GradientButton style={[styles.detailsExtractBtn, styles.detailsCustomFolderBtn]} onPress={handleExtractToCustomFolder} title="Choose Custom Folder" />
+                <GradientButton style={styles.detailsExtractBtn} onPress={handleExtractHere} title={t('extractHere')} />
+                <GradientButton style={[styles.detailsExtractBtn, styles.detailsCustomFolderBtn]} onPress={handleExtractToCustomFolder} title={t('chooseCustomFolder')} />
               </View>
             </View>
           </SafeAreaView>
@@ -1242,15 +1242,15 @@ export const CategoryListScreen = ({ route, navigation }) => {
         >
           <View style={styles.modalOverlay}>
             <View style={styles.modalContent}>
-              <Text style={styles.modalTitle}>Password Required</Text>
+              <Text style={styles.modalTitle}>{t('passwordRequired')}</Text>
               <Text style={styles.modalSubtitle} numberOfLines={2}>
                 {selectedArchive ? selectedArchive.name : ''}
               </Text>
 
-              <Text style={styles.inputLabel}>Enter archive password</Text>
+              <Text style={styles.inputLabel}>{t('enterArchivePassword')}</Text>
               <TextInput
                 style={styles.passwordInput}
-                placeholder="Password"
+                placeholder={t('enterPassword')}
                 placeholderTextColor="#888888"
                 value={password}
                 onChangeText={setPassword}
@@ -1270,7 +1270,7 @@ export const CategoryListScreen = ({ route, navigation }) => {
                 style={[styles.modalButton, isExtracting && styles.disabledButton]}
                 onPress={handleConfirmPasswordExtraction}
                 disabled={isExtracting}
-                title="Extract"
+                title={t('extract')}
               />
 
               <TouchableOpacity
@@ -1279,7 +1279,7 @@ export const CategoryListScreen = ({ route, navigation }) => {
                 onPress={closePasswordModal}
                 disabled={isExtracting}
               >
-                <Text style={styles.cancelButtonText}>Cancel</Text>
+                <Text style={styles.cancelButtonText}>{t('cancel')}</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -1333,7 +1333,7 @@ export const CategoryListScreen = ({ route, navigation }) => {
                     }
                   }}
                 >
-                  <Text style={styles.imageBtnText}>Open in Gallery</Text>
+                  <Text style={styles.imageBtnText}>{t('openInGallery')}</Text>
                 </TouchableOpacity>
 
                 <TouchableOpacity
@@ -1345,7 +1345,7 @@ export const CategoryListScreen = ({ route, navigation }) => {
                     }
                   }}
                 >
-                  <Text style={styles.imageBtnText}>Share File</Text>
+                  <Text style={styles.imageBtnText}>{t('shareFile')}</Text>
                 </TouchableOpacity>
               </View>
             </TouchableOpacity>
@@ -1365,7 +1365,7 @@ export const CategoryListScreen = ({ route, navigation }) => {
             onPressOut={() => setDetailModalVisible(false)}
           >
             <View style={styles.detailModalCard}>
-              <Text style={styles.detailModalTitle}>File Details</Text>
+              <Text style={styles.detailModalTitle}>{t('fileDetails')}</Text>
               <Text style={styles.detailModalSubtitle} numberOfLines={1}>
                 {selectedDetailFile ? selectedDetailFile.name : ''}
               </Text>
@@ -1392,10 +1392,10 @@ export const CategoryListScreen = ({ route, navigation }) => {
                 </View>
                 <View style={styles.detailInfoTextContainer}>
                   <Text style={styles.detailInfoSizeText}>
-                    Size: {selectedDetailFile ? formatFileSize(selectedDetailFile.size) : ''}
+                    {t('size')}: {selectedDetailFile ? formatFileSize(selectedDetailFile.size) : ''}
                   </Text>
                   <Text style={styles.detailInfoPathText} numberOfLines={2}>
-                    Path: {selectedDetailFile ? cleanDisplayPath(selectedDetailFile.path) : ''}
+                    {t('path')}: {selectedDetailFile ? cleanDisplayPath(selectedDetailFile.path) : ''}
                   </Text>
                 </View>
               </View>
@@ -1409,14 +1409,14 @@ export const CategoryListScreen = ({ route, navigation }) => {
                       openWithSystemApp(selectedDetailFile.path);
                     }
                   }}
-                  title="Open File"
+                  title={t('openFile')}
                 />
               )}
 
               <GradientButton
                 style={styles.detailActionBtn}
                 onPress={() => handleShareFile()}
-                title="Share File"
+                title={t('shareFile')}
               />
             </View>
           </TouchableOpacity>
