@@ -231,7 +231,6 @@ export const scanDeviceStorage = async (
     const queue = [{ path: rootPath, depth: 0 }];
     const CONCURRENCY_LIMIT = 5;
     const MAX_DEPTH = 15;
-    let iterationCount = 0;
 
     while (queue.length > 0) {
       const currentBatch = queue.splice(0, CONCURRENCY_LIMIT);
