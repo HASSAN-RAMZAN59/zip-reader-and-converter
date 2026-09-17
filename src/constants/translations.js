@@ -97,7 +97,7 @@ export const TRANSLATIONS = {
     // Privacy & About text
     privacyPolicyContent: `We value your privacy. Zip Reader & Converter operates locally on your device to create, extract, and manage archive files.\n\n• Data Collection: We do not collect or store your personal files or archives on external servers.\n\n• Permissions: Storage permissions are required strictly to locate, create, and extract zip archives on your device.\n\n• Security: All operations remain completely offline and secure on your local device storage.`,
     aboutContent: 'Fast, lightweight & secure file archive reader, creator, and extractor tool.',
-    version: 'Version 1.0.0',
+    version: 'Version 1.0.2 (3)',
 
     // Onboarding & Permissions
     getStarted: 'Get Started',
@@ -206,7 +206,7 @@ export const TRANSLATIONS = {
     // Privacy & About text
     privacyPolicyContent: `Valoramos su privacidad. Zip Reader & Converter funciona localmente en su dispositivo para crear, extraer y gestionar archivos.\n\n• Recopilación de Datos: No recopilamos ni almacenamos sus archivos personales en servidores externos.\n\n• Permisos: Se requieren permisos de almacenamiento strictly para ubicar, crear y extraer archivos zip en su dispositivo.\n\n• Seguridad: Todas las operaciones permanecen completamente fuera de línea y seguras en su dispositivo.`,
     aboutContent: 'Herramienta rápida, ligera y segura para leer, crear y extraer archivos.',
-    version: 'Versión 1.0.0',
+    version: 'Versión 1.0.2 (3)',
 
     // Onboarding & Permissions
     getStarted: 'Empezar',
@@ -315,7 +315,7 @@ export const TRANSLATIONS = {
     // Privacy & About text
     privacyPolicyContent: `Nous respectons votre vie privée. Zip Reader & Converter fonctionne localement sur votre appareil pour créer, extraire et gérer des fichiers.\n\n• Collecte de Données : Nous ne collectons ni ne stockons vos fichiers personnels sur des serveurs externes.\n\n• Autorisations : Les autorisations de stockage sont requises uniquement pour localiser, créer et extraire des archives zip sur votre appareil.\n\n• Sécurité : Toutes les opérations restent totalement hors ligne et sécurisées.`,
     aboutContent: 'Outil rapide, léger et sécurisé pour lire, créer et extraire des archives.',
-    version: 'Version 1.0.0',
+    version: 'Version 1.0.2 (3)',
 
     // Onboarding & Permissions
     getStarted: 'Commencer',
@@ -424,7 +424,7 @@ export const TRANSLATIONS = {
     // Privacy & About text
     privacyPolicyContent: `Wir schätzen Ihre Privatsphäre. Zip Reader & Converter arbeitet lokal auf Ihrem Gerät, um Archivdateien zu erstellen, zu entpacken und zu verwalten.\n\n• Datenerfassung: Wir erfassen oder speichern Ihre persönlichen Dateien nicht auf externen Servern.\n\n• Berechtigungen: Speicherberechtigungen werden ausschließlich benötigt, um ZIP-Archive auf Ihrem Gerät zu verwalten.\n\n• Sicherheit: Alle Vorgänge bleiben vollständig offline und sicher auf Ihrem lokalen Gerätespeicher.`,
     aboutContent: 'Schnelles, leichtes und sicheres Werkzeug zum Lesen, Erstellen und Entpacken von Archiven.',
-    version: 'Version 1.0.0',
+    version: 'Version 1.0.2 (3)',
 
     // Onboarding & Permissions
     getStarted: 'Loslegen',
@@ -533,7 +533,7 @@ export const TRANSLATIONS = {
     // Privacy & About text
     privacyPolicyContent: `ہم آپ کی پرائیویسی کا احترام کرتے ہیں۔ Zip Reader & Converter تمام فائلیں آپ کے ڈیوائس پر مقامی طور پر پروسیس کرتا ہے۔\n\n• ڈیٹا کا تحفظ: ہم آپ کی ذاتی فائلیں کسی ایکسٹرنل سرور پر محفوظ نہیں کرتے۔\n\n• اجازتیں: اسٹوریج پرمیشن صرف ڈیوائس پر zips تلاش کرنے اور بنانے کے لیے استعمال ہوتی ہے۔\n\n• سیکیورٹی: تمام کام آف لائن اور آپ کی ڈیوائس پر محفوظ رہتا ہے۔`,
     aboutContent: 'آرکائیو فائلوں کو پڑھنے، بنانے اور ان زپ کرنے کا تیز اور محفوظ ٹول۔',
-    version: 'ورژن 1.0.0',
+    version: 'ورژن 1.0.2 (3)',
 
     // Onboarding & Permissions
     getStarted: 'شروع کریں',
@@ -642,7 +642,7 @@ export const TRANSLATIONS = {
     // Privacy & About text
     privacyPolicyContent: `نحن نقدر خصوصيتك. يعمل Zip Reader & Converter محلياً على جهازك لإنشاء الملفات واستخراجها وإدارتها.\n\n• جمع البيانات: لا نجمع أو نخزن ملفاتك الشخصية على خوادم خارجية.\n\n• الأذونات: أذونات التخزين مطلوبة فقط لتحديد ملفات zip واستخراجها على جهازك.\n\n• الأمان: تبقى جميع العمليات دون اتصال بالإنترنت وآمنة على جهازك.`,
     aboutContent: 'أداة سريعة وخفيفة وآمنة لقراءة الأراشيف وإنشائها واستخراجها.',
-    version: 'الإصدار 1.0.0',
+    version: 'الإصدار 1.0.2 (3)',
 
     // Onboarding & Permissions
     getStarted: 'ابدأ الآن',
@@ -751,7 +751,7 @@ export const TRANSLATIONS = {
     // Privacy & About text
     privacyPolicyContent: `हम आपकी गोपनीयता का सम्मान करते हैं। Zip Reader & Converter आपकी फ़ाइलों को आपके डिवाइस पर स्थानीय रूप से प्रोसेस करता है।\n\n• डेटा संग्रह: हम आपकी निजी फ़ाइलों को किसी बाहरी सर्वर पर स्टोर नहीं करते हैं।\n\n• अनुमतियाँ: स्टोरेज अनुमति केवल आपके डिवाइस पर ज़िप फ़ाइलों को खोजने और बनाने के लिए आवश्यक है।\n\n• सुरक्षा: सभी प्रक्रियाएं पूरी तरह से ऑफ़लाइन और सुरक्षित रहती हैं।`,
     aboutContent: 'आर्काइव फ़ाइलों को पढ़ने, बनाने और एक्सट्रैक्ट करने का तेज़ और सुरक्षित टूल।',
-    version: 'वर्ज़न 1.0.0',
+    version: 'संस्करण 1.0.2 (3)',
 
     // Onboarding & Permissions
     getStarted: 'शुरू करें',

@@ -1,4 +1,5 @@
 const {getDefaultConfig, mergeConfig} = require('@react-native/metro-config');
+const exclusionList = require('metro-config/src/defaults/exclusionList');
 
 const defaultConfig = getDefaultConfig(__dirname);
 const {assetExts, sourceExts} = defaultConfig.resolver;
@@ -16,11 +17,11 @@ const config = {
   resolver: {
     assetExts: assetExts.filter(ext => ext !== 'svg'),
     sourceExts: [...sourceExts, 'svg'],
-    blockList: [
+    blockList: exclusionList([
       /.*[/\\]android[/\\]\.gradle[/\\].*/,
       /.*[/\\]android[/\\]app[/\\]build[/\\].*/,
       /.*[/\\]node_modules[/\\]@react-native[/\\]gradle-plugin[/\\].*/,
-    ],
+    ]),
   },
 };
 

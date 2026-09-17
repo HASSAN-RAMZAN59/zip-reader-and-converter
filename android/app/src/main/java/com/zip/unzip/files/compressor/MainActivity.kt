@@ -1,4 +1,4 @@
-package com.zipapp
+package com.zip.unzip.files.compressor
 
 import android.os.Bundle
 import com.facebook.react.ReactActivity

@@ -1,4 +1,4 @@
-package com.zipapp
+package com.zip.unzip.files.compressor
 
 import android.content.Intent
 import android.graphics.Bitmap

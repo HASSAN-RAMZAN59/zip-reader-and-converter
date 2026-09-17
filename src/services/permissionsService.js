@@ -108,7 +108,7 @@ export const permissionsService = {
           try {
             await Linking.sendIntent(
               'android.settings.MANAGE_APP_ALL_FILES_ACCESS_PERMISSION',
-              [{ key: 'package', value: 'package:com.zipapp' }]
+              [{ key: 'package', value: 'package:com.zip.unzip.files.compressor' }]
             );
             return;
           } catch (e1) {

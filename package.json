@@ -1,6 +1,6 @@
 {
   "name": "ZipApp",
-  "version": "1.0.0",
+  "version": "1.0.2",
   "private": true,
   "scripts": {
     "android": "react-native run-android",
@@ -23,6 +23,7 @@
     "react-native-screens": "^4.4.0",
     "react-native-svg": "^15.15.5",
     "react-native-svg-transformer": "^1.5.3",
+    "react-native-webview": "^14.0.1",
     "react-native-zip-archive": "^9.4.0",
     "sharp": "^0.35.4"
   },

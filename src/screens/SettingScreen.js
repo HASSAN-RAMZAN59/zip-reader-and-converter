@@ -10,7 +10,10 @@ import {
   Modal,
   Share,
   Alert,
+  Linking,
+  ActivityIndicator,
 } from 'react-native';
+import { WebView } from 'react-native-webview';
 
 import { useLanguage } from '../context/LanguageContext';
 
@@ -93,16 +96,31 @@ export const SettingScreen = ({ navigation }) => {
       await Share.share({
         title: 'Zip Reader & Converter',
         message:
-          'Check out Zip Reader & Converter app to compress, extract, and manage your zip archives effortlessly!\n\nDownload now: https://play.google.com/store/apps/details?id=com.zipreader.converter',
+          'Check out Zip Reader & Converter app to compress, extract, and manage your zip archives effortlessly!\n\nDownload now: https://play.google.com/store/apps/details?id=com.zip.unzip.files.compressor',
       });
     } catch (error) {
       console.log('Share error:', error.message);
     }
   };
 
-  const handleRatingSubmit = () => {
-    Alert.alert(t('thankYou'), t('ratingThankYou'));
+  const openPlayStore = async () => {
+    const playStoreUrl = 'https://play.google.com/store/apps/details?id=com.zip.unzip.files.compressor';
+    const marketUrl = 'market://details?id=com.zip.unzip.files.compressor';
+    try {
+      const supported = await Linking.canOpenURL(marketUrl);
+      if (supported) {
+        await Linking.openURL(marketUrl);
+      } else {
+        await Linking.openURL(playStoreUrl);
+      }
+    } catch (error) {
+      await Linking.openURL(playStoreUrl).catch((err) => console.log('Error opening Play Store:', err));
+    }
+  };
+
+  const handleRatingSubmit = async () => {
     setActiveModal(null);
+    await openPlayStore();
   };
 
   return (
@@ -197,36 +215,36 @@ export const SettingScreen = ({ navigation }) => {
         </TouchableOpacity>
       </Modal>
 
-      {/* Privacy Policy Modal */}
+      {/* Privacy Policy In-App WebView Modal */}
       <Modal
         visible={activeModal === 'privacy'}
-        transparent
-        animationType="fade"
+        animationType="slide"
         onRequestClose={() => setActiveModal(null)}
       >
-        <TouchableOpacity
-          style={styles.modalOverlay}
-          activeOpacity={1}
-          onPress={() => setActiveModal(null)}
-        >
-          <View style={styles.modalContentLarge} onStartShouldSetResponder={() => true}>
-            <View style={styles.modalHeaderRow}>
-              <SecurityIcon width={24} height={24} />
-              <Text style={styles.modalTitleInline}>{t('privacyPolicy')}</Text>
-            </View>
-            <ScrollView style={styles.modalScroll}>
-              <Text style={styles.modalBodyText}>
-                {t('privacyPolicyContent')}
-              </Text>
-            </ScrollView>
+        <SafeAreaView style={{ flex: 1, backgroundColor: '#FFFFFF' }}>
+          <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
+          <View style={styles.webHeader}>
             <TouchableOpacity
-              style={styles.closeBtn}
+              style={styles.backButton}
               onPress={() => setActiveModal(null)}
+              activeOpacity={0.7}
+              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
             >
-              <Text style={styles.closeBtnText}>{t('iUnderstand')}</Text>
+              <BackArrowIcon width={24} height={24} />
             </TouchableOpacity>
+            <Text style={styles.headerTitle}>{t('privacyPolicy')}</Text>
           </View>
-        </TouchableOpacity>
+          <WebView
+            source={{ uri: 'https://sites.google.com/view/zipfilereader-privacypolicy' }}
+            style={{ flex: 1 }}
+            startInLoadingState={true}
+            renderLoading={() => (
+              <View style={styles.webLoader}>
+                <ActivityIndicator size="large" color="#007AFF" />
+              </View>
+            )}
+          />
+        </SafeAreaView>
       </Modal>
 
       {/* Rate Us Modal */}
@@ -490,6 +508,25 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     fontSize: 15,
     fontWeight: '700',
+  },
+  webHeader: {
+    height: 56,
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#E5E5EA',
+    backgroundColor: '#FFFFFF',
+  },
+  webLoader: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#FFFFFF',
   },
 });
 
