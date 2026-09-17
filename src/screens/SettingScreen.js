@@ -237,6 +237,10 @@ export const SettingScreen = ({ navigation }) => {
           <WebView
             source={{ uri: 'https://sites.google.com/view/zipfilereader-privacypolicy' }}
             style={{ flex: 1 }}
+            javaScriptEnabled={true}
+            domStorageEnabled={true}
+            thirdPartyCookiesEnabled={true}
+            mixedContentMode="always"
             startInLoadingState={true}
             renderLoading={() => (
               <View style={styles.webLoader}>
